@@ -2,6 +2,7 @@
 .xvm-badge {
   display: inline-flex;
   align-items: center;
+  align-self: center;
   gap: 4px;
   margin-left: auto;
   padding: 2px 7px;
@@ -9,6 +10,7 @@
   font-size: 12px;
   font-weight: 700;
   line-height: 16px;
+  height: fit-content;
   color: #fff;
   vertical-align: middle;
   cursor: default;
