@@ -999,17 +999,38 @@ function ensureLeaderboard() {
   hot.dataset.tier = 'free';
   hot.innerHTML = `
     <span class="xvm-lb-hot-label"></span>
+    <span class="xvm-lb-pro-badge">Pro</span>
     <span class="xvm-lb-hot-switch">
       <input type="checkbox" />
       <span class="xvm-lb-hot-slider"></span>
     </span>
   `;
   hot.querySelector('.xvm-lb-hot-label').textContent = i18n('contentLbHotOnly') || '仅看热帖';
-  leaderboardEl.querySelector('.xvm-lb-head').appendChild(hot);
+  const list = document.createElement('label');
+  list.className = 'xvm-lb-hot xvm-lb-list-member';
+  list.dataset.on = '0';
+  list.dataset.tier = 'free';
+  list.dataset.ready = '0';
+  list.innerHTML = `
+    <span class="xvm-lb-hot-label"></span>
+    <span class="xvm-lb-pro-badge">Pro</span>
+    <span class="xvm-lb-hot-switch">
+      <input type="checkbox" />
+      <span class="xvm-lb-hot-slider"></span>
+    </span>
+  `;
+  list.querySelector('.xvm-lb-hot-label').textContent = i18n('contentLbListOnly') || '仅看 List 成员';
+  const controls = document.createElement('div');
+  controls.className = 'xvm-lb-controls';
+  controls.append(hot, list);
+  leaderboardEl.querySelector('.xvm-lb-head').appendChild(controls);
   // The checkbox 'click' fires when the user clicks anywhere on the label.
   // We listen on the input directly so we can preventDefault for free
   // users (don't visually flip the switch — bubble instead).
+  hot.addEventListener('click', onHotGateClick);
   hot.querySelector('input').addEventListener('click', onHotToggleClick);
+  list.addEventListener('click', onListMemberGateClick);
+  list.querySelector('input').addEventListener('click', onListMemberToggleClick);
 
   document.body.appendChild(leaderboardEl);
   applyLeaderboardWidth();
@@ -1073,6 +1094,11 @@ function installLeaderboardTierSync() {
       hot.dataset.tier = tier;
       setLeaderboardHotSwitchState();
     }
+    const list = leaderboardEl.querySelector('.xvm-lb-list-member');
+    if (list) {
+      list.dataset.tier = tier;
+      setLeaderboardListMemberSwitchState();
+    }
   }
   refreshTier();
   window.__xvmPro?.onTierChange?.(() => refreshTier());
@@ -1083,14 +1109,51 @@ function installLeaderboardTierSync() {
 // chrome.storage.local.xvm_rate_filter_v1.enabled. We listen for the
 // settings-update message that isolated.js already broadcasts.
 let _rateFilterEnabled = false;
+let _listMemberFilterSettings = { enabled: false, scopes: { home: false, list: false, profile: false, status: true }, lists: [] };
 function setLeaderboardHotSwitchState() {
   const hot = leaderboardEl?.querySelector('.xvm-lb-hot');
   if (!hot) return;
   const tier = hot.dataset.tier || 'free';
   const on = tier !== 'free' && _rateFilterEnabled;
   hot.dataset.on = on ? '1' : '0';
+  hot.setAttribute('aria-disabled', tier === 'free' ? 'true' : 'false');
+  hot.title = tier === 'free'
+    ? (i18n('contentLbHotProTitle') || '流速过滤是 Pro 功能')
+    : '';
   const cb = hot.querySelector('input[type="checkbox"]');
-  if (cb && cb.checked !== on) cb.checked = on;
+  if (cb) {
+    if (cb.checked !== on) cb.checked = on;
+    cb.disabled = tier === 'free';
+  }
+}
+function isReadyListMemberFilter(settings = _listMemberFilterSettings) {
+  const lists = Array.isArray(settings?.lists) ? settings.lists : [];
+  const now = Date.now();
+  return lists.some((list) => {
+    if (!list || list.enabled === false) return false;
+    const ttlMs = Number.isFinite(list.ttlMs) ? list.ttlMs : 24 * 60 * 60 * 1000;
+    const fetchedAt = Number.isFinite(list.fetchedAt) ? list.fetchedAt : 0;
+    const stale = fetchedAt && ttlMs > 0 && now - fetchedAt > ttlMs;
+    return !stale && Array.isArray(list.members) && list.members.length > 0;
+  });
+}
+function setLeaderboardListMemberSwitchState() {
+  const list = leaderboardEl?.querySelector('.xvm-lb-list-member');
+  if (!list) return;
+  const tier = list.dataset.tier || 'free';
+  const ready = isReadyListMemberFilter();
+  const on = tier !== 'free' && ready && !!_listMemberFilterSettings.enabled;
+  list.dataset.on = on ? '1' : '0';
+  list.dataset.ready = ready ? '1' : '0';
+  list.setAttribute('aria-disabled', tier === 'free' || !ready ? 'true' : 'false');
+  list.title = !ready
+    ? (i18n('contentLbListDisabledSub') || '先在 popup 添加 List 并抓成员')
+    : '';
+  const cb = list.querySelector('input[type="checkbox"]');
+  if (cb) {
+    cb.checked = on;
+    cb.disabled = tier === 'free' || !ready;
+  }
 }
 function installLeaderboardFilterStateSync() {
   window.addEventListener('message', (ev) => {
@@ -1099,11 +1162,27 @@ function installLeaderboardFilterStateSync() {
       _rateFilterEnabled = !!ev.data.settings.enabled;
       setLeaderboardHotSwitchState();
     }
+    if (ev.data?.type === 'XVM_LIST_MEMBER_FILTER_UPDATE' && ev.data.settings) {
+      _listMemberFilterSettings = ev.data.settings;
+      setLeaderboardListMemberSwitchState();
+    }
   });
   // Leaderboard can be created after isolated.js did its document_start
   // bootstrap push. Ask the isolated bridge for the current local setting so
   // the switch and popup start from the same source of truth.
   window.postMessage({ type: 'XVM_RATE_FILTER_REQUEST' }, '*');
+  window.postMessage({ type: 'XVM_LIST_MEMBER_FILTER_REQUEST' }, '*');
+}
+
+function onHotGateClick(ev) {
+  const hot = leaderboardEl?.querySelector('.xvm-lb-hot');
+  if (!hot) return;
+  const tier = hot.dataset.tier || 'free';
+  if (tier === 'free') {
+    ev.preventDefault();
+    showLeaderboardUpgradeBubble();
+    return;
+  }
 }
 
 function onHotToggleClick(ev) {
@@ -1127,6 +1206,74 @@ function onHotToggleClick(ev) {
     type: 'XVM_RATE_FILTER_SET_ENABLED',
     enabled: next,
   }, '*');
+}
+
+function onListMemberGateClick(ev) {
+  const list = leaderboardEl?.querySelector('.xvm-lb-list-member');
+  if (!list) return;
+  const tier = list.dataset.tier || 'free';
+  const ready = isReadyListMemberFilter();
+  if (tier === 'free' || !ready) {
+    ev.preventDefault();
+    showLeaderboardListMemberHint(tier === 'free' ? 'free' : 'not-ready');
+    setLeaderboardListMemberSwitchState();
+    return;
+  }
+}
+
+function onListMemberToggleClick(ev) {
+  const list = leaderboardEl?.querySelector('.xvm-lb-list-member');
+  if (!list) return;
+  const tier = list.dataset.tier || 'free';
+  const ready = isReadyListMemberFilter();
+  if (tier === 'free' || !ready) {
+    ev.preventDefault();
+    showLeaderboardListMemberHint(tier === 'free' ? 'free' : 'not-ready');
+    setLeaderboardListMemberSwitchState();
+    return;
+  }
+  const cb = list.querySelector('input[type="checkbox"]');
+  if (cb) cb.dataset.pending = '1';
+}
+
+function showLeaderboardListMemberHint(reason = 'not-ready') {
+  if (!leaderboardEl) return;
+  const old = leaderboardEl.querySelector('.xvm-lb-list-hint');
+  if (old) old.remove();
+  const bubble = document.createElement('div');
+  bubble.className = 'xvm-lb-upgrade xvm-lb-list-hint';
+  const isFree = reason === 'free';
+  bubble.innerHTML = isFree ? `
+    <button class="xvm-lb-upgrade-close" type="button" aria-label="Close">×</button>
+    <div class="xvm-lb-upgrade-title">✨ <span></span></div>
+    <div class="xvm-lb-upgrade-sub"></div>
+    <div class="xvm-lb-upgrade-actions">
+      <a class="xvm-lb-upgrade-link" target="_blank" rel="noopener"></a>
+      <a class="xvm-lb-upgrade-btn"  target="_blank" rel="noopener"></a>
+    </div>
+  ` : `
+    <button class="xvm-lb-upgrade-close" type="button" aria-label="Close">×</button>
+    <div class="xvm-lb-upgrade-title">📋 <span></span></div>
+    <div class="xvm-lb-upgrade-sub"></div>
+  `;
+  bubble.querySelector('.xvm-lb-upgrade-title span').textContent = isFree
+    ? (i18n('contentLbListProTitle') || 'List member filter is a Pro feature')
+    : (i18n('contentLbListDisabledTitle') || '先添加 X List');
+  bubble.querySelector('.xvm-lb-upgrade-sub').textContent = isFree
+    ? (i18n('contentLbListProSub') || 'Upgrade Pro to filter X by saved List members')
+    : (i18n('contentLbListDisabledSub') || '先在 popup 添加 List 并抓成员');
+  if (isFree) {
+    const link = bubble.querySelector('.xvm-lb-upgrade-link');
+    link.textContent = i18n('contentLbHotMonthly') || '月度 $9';
+    link.href = 'https://www.creem.io/payment/prod_7f7t9EHK3RJlOK37DWr7J';
+    const btn = bubble.querySelector('.xvm-lb-upgrade-btn');
+    btn.textContent = i18n('contentLbHotAnnual') || '年度 $90 (省 17%)';
+    btn.href = 'https://www.creem.io/payment/prod_69yTiXGXb04DKm46DNVbN9';
+  }
+  bubble.querySelector('.xvm-lb-upgrade-close').addEventListener('click', () => bubble.remove());
+  const head = leaderboardEl.querySelector('.xvm-lb-head');
+  head.insertAdjacentElement('afterend', bubble);
+  setTimeout(() => bubble.remove(), 5000);
 }
 
 function showLeaderboardUpgradeBubble() {
@@ -1274,6 +1421,7 @@ function installLeaderboardDrag() {
 
   head.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return;
+    if (e.target?.closest?.('.xvm-lb-controls, .xvm-lb-hot, .xvm-lb-list-member, label, button, input, a')) return;
     const rect = leaderboardEl.getBoundingClientRect();
     dragState = {
       offsetX: e.clientX - rect.left,

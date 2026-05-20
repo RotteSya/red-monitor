@@ -72,6 +72,11 @@ const CONTENT_MESSAGE_KEYS = [
   'contentLbHotOnly',
   'contentLbHotProTitle',
   'contentLbHotProSub',
+  'contentLbListOnly',
+  'contentLbListProTitle',
+  'contentLbListProSub',
+  'contentLbListDisabledTitle',
+  'contentLbListDisabledSub',
   'contentLbHotMonthly',
   'contentLbHotAnnual',
 ];
@@ -483,6 +488,34 @@ window.addEventListener('message', (event) => {
     return;
   }
 });
+
+function writeListMemberEnabledFromInput(input) {
+  if (!(input instanceof HTMLInputElement) || input.disabled) return;
+  safeChromeCall(() => {
+    const LF_KEY = 'xvm_list_member_filter_v1';
+    chrome.storage.local.get({ [LF_KEY]: null }, (items) => {
+      const cur = items[LF_KEY] && typeof items[LF_KEY] === 'object'
+        ? items[LF_KEY]
+        : { enabled: false, scopes: { home: false, list: false, profile: false, status: true }, lists: [] };
+      chrome.storage.local.set({ [LF_KEY]: { ...cur, enabled: input.checked } });
+    });
+  });
+}
+
+document.addEventListener('change', (event) => {
+  const target = event.target;
+  if (!event.isTrusted || !(target instanceof HTMLInputElement)) return;
+  if (!target.matches('.xvm-lb-list-member input[type="checkbox"]')) return;
+  writeListMemberEnabledFromInput(target);
+}, true);
+
+document.addEventListener('click', (event) => {
+  if (!event.isTrusted) return;
+  const label = event.target?.closest?.('.xvm-lb-list-member');
+  if (!label) return;
+  const input = label.querySelector('input[type="checkbox"]');
+  setTimeout(() => writeListMemberEnabledFromInput(input), 0);
+}, true);
 
 // One-time cleanup of legacy captured template (no longer used after self-gen
 // rollout). Idempotent flag avoids the IPC on every page load.

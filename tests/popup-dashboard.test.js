@@ -14,6 +14,8 @@ const proJs     = readFileSync(resolve(repo, 'src/premium/license/popup-pro.js')
 const rfJs      = readFileSync(resolve(repo, 'src/premium/rate-filter/popup-rate-filter.js'), 'utf8');
 const bridgeJs  = readFileSync(resolve(repo, 'bridge.js'),          'utf8');
 const popupJs   = readFileSync(resolve(repo, 'popup.js'),           'utf8');
+const contentJs = readFileSync(resolve(repo, 'content.js'),         'utf8');
+const stylesCss = readFileSync(resolve(repo, 'styles.css'),         'utf8');
 const userScript = readFileSync(resolve(repo, 'userscript/x-viral-monitor.user.js'), 'utf8');
 
 describe('#45 popup tabs structure (mock A)', () => {
@@ -290,6 +292,29 @@ describe('#69/#72 user self-test polish', () => {
     expect(/\.rf-subcard\s+\.sub-tab-btn\[aria-selected="true"\]\s*\{[\s\S]*?color:\s*#0b1120\s*!important/.test(html)).toBe(true);
     expect(/\.rf-subcard\s+\.sub-tab-btn:hover\s*\{[\s\S]*?background:\s*var\(--surface\)\s*!important/.test(html)).toBe(true);
     expect(/\.rf-subcard\s+\.sub-tab-btn:focus-visible\s*\{[\s\S]*?outline:\s*2px\s+solid\s+var\(--accent\)/.test(html)).toBe(true);
+  });
+
+  it('renders leaderboard Hot only and List only switches with shared state sync hooks', () => {
+    expect(contentJs).toMatch(/className\s*=\s*['"]xvm-lb-controls['"]/);
+    expect(contentJs).toMatch(/className\s*=\s*['"]xvm-lb-hot xvm-lb-list-member['"]/);
+    expect(contentJs).toMatch(/xvm-lb-pro-badge/);
+    expect(contentJs).toMatch(/aria-disabled/);
+    expect(contentJs).toMatch(/contentLbListOnly/);
+    expect(contentJs).toMatch(/XVM_LIST_MEMBER_FILTER_REQUEST/);
+    expect(contentJs).toMatch(/XVM_LIST_MEMBER_FILTER_UPDATE/);
+    expect(contentJs).not.toMatch(/XVM_LIST_MEMBER_FILTER_SET_ENABLED/);
+    expect(contentJs).toMatch(/isReadyListMemberFilter/);
+    expect(contentJs).toMatch(/contentLbListDisabledSub/);
+    expect(contentJs).toMatch(/closest\?\.\(['"]\.xvm-lb-controls, \.xvm-lb-hot, \.xvm-lb-list-member, label, button, input, a['"]\)/);
+    expect(bridgeJs).not.toMatch(/XVM_LIST_MEMBER_FILTER_SET_ENABLED/);
+    expect(bridgeJs).toMatch(/event\.isTrusted/);
+    expect(bridgeJs).toMatch(/matches\(['"]\.xvm-lb-list-member input\[type="checkbox"\]['"]\)/);
+    expect(bridgeJs).toMatch(/addEventListener\(['"]change['"]/);
+    expect(bridgeJs).toMatch(/closest\?\.\(['"]\.xvm-lb-list-member['"]\)/);
+    expect(bridgeJs).toMatch(/setTimeout\(\(\)\s*=>\s*writeListMemberEnabledFromInput\(input\),\s*0\)/);
+    expect(bridgeJs).toMatch(/xvm_list_member_filter_v1/);
+    expect(/\.xvm-lb-hot\[data-tier="free"\]\s+\.xvm-lb-pro-badge\s*\{[\s\S]*?display:\s*inline-flex/.test(stylesCss)).toBe(true);
+    expect(/\.xvm-lb-hot\[aria-disabled="true"\]\s*\{[\s\S]*?cursor:\s*not-allowed/.test(stylesCss)).toBe(true);
   });
 });
 

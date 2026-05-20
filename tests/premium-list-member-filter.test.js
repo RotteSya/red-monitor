@@ -93,7 +93,12 @@ describe('#60 Pro M2 — X List member filter PoC', () => {
 
   it('does not expose a page postMessage path that writes list-member storage', () => {
     expect(bridge).not.toMatch(/XVM_LIST_MEMBER_FILTER_SET/);
-    expect(bridge).not.toMatch(/chrome\.storage\.local\.set\(\s*\{\s*\[LF_KEY\]/);
+    expect(bridge).not.toMatch(/event\.data\.settings/);
+    expect(bridge).toMatch(/event\.isTrusted/);
+    expect(bridge).toMatch(/writeListMemberEnabledFromInput/);
+    expect(bridge).toMatch(/addEventListener\(['"]change['"]/);
+    expect(bridge).toMatch(/closest\?\.\(['"]\.xvm-lb-list-member['"]\)/);
+    expect(bridge).toMatch(/\.xvm-lb-list-member input\[type="checkbox"\]/);
   });
 
   it('adds a popup Filter-tab entry without touching the leaderboard top', () => {
