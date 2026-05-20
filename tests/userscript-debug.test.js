@@ -11,7 +11,7 @@ const releaseScript = readFileSync(resolve(repo, 'userscript/x-viral-monitor.use
 describe('iOS userscript debug build', () => {
   it('is a separate DEBUG userscript and does not replace the release script', () => {
     expect(debugScript).toContain('@name         X Viral Monitor Minimal Badge DEBUG');
-    expect(debugScript).toContain('@version      0.1.13-debug.3');
+    expect(debugScript).toContain('@version      0.1.13-debug.4');
     expect(debugScript).toContain('Debug build for iOS Userscripts');
     expect(releaseScript).toContain('@name         X Viral Monitor Minimal Badge');
     expect(releaseScript).not.toContain('@name         X Viral Monitor Minimal Badge DEBUG');
@@ -24,6 +24,9 @@ describe('iOS userscript debug build', () => {
     expect(debugScript).toContain('id = \'xvm-debug-panel\'');
     expect(debugScript).toContain('[data-xvm-debug-eruda]');
     expect(debugScript).toContain('[data-xvm-debug-copy]');
+    expect(debugScript).toContain('xvm-debug-launcher');
+    expect(debugScript).toContain('xvm-debug-backdrop');
+    expect(debugScript).toContain('Copy Bundle');
   });
 
   it('exposes the metrics needed to diagnose iOS badge failures', () => {
@@ -41,6 +44,10 @@ describe('iOS userscript debug build', () => {
       'graphqlResourceUrls',
       'pageHookMode',
       'domFallbackTweets',
+      'graphqlDebugBuffer',
+      'refetchAttempts',
+      'refetchSuccesses',
+      'refetchFailures',
     ]) {
       expect(debugScript).toContain(token);
     }
@@ -58,6 +65,9 @@ describe('iOS userscript debug build', () => {
       'page-world script hook injected',
       'PerformanceObserver resource fallback installed',
       'DOM visible metrics fallback extracted',
+      'GraphQL resource refetched',
+      'GraphQL request captured',
+      'Full debug bundle copied',
     ]) {
       expect(debugScript).toContain(phrase);
     }
@@ -69,6 +79,11 @@ describe('iOS userscript debug build', () => {
     expect(debugScript).toContain('source, payload, capturedAt');
     expect(debugScript).toContain('function installResourceObserver()');
     expect(debugScript).toContain('performance.getEntriesByType');
+    expect(debugScript).toContain('function refetchGraphqlUrl(url, source = \'resource-refetch\')');
+    expect(debugScript).toContain('credentials: \'include\'');
+    expect(debugScript).toContain('function buildDebugBundle()');
+    expect(debugScript).toContain('function recordGraphqlDebug(entry)');
+    expect(debugScript).toContain('XVM_TM_GRAPHQL_REQUEST');
     expect(debugScript).toContain('function extractVisibleTweetData(article, id)');
     expect(debugScript).toContain('function getCreatedAtFromArticle(article)');
     expect(debugScript).toContain('const minHours = data.source === \'dom-visible-fallback\' ? 1 : 0.1');

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         X Viral Monitor Minimal Badge DEBUG
 // @namespace    https://github.com/x-viral-monitor
-// @version      0.1.13-debug.3
+// @version      0.1.13-debug.4
 // @description  Debug build for iOS Userscripts: Eruda + XVM hook/GraphQL/DOM/badge diagnostics.
 // @match        https://x.com/*
 // @match        https://pro.x.com/*
@@ -169,6 +169,10 @@
     badges: 0,
     articles: 0,
     graphqlResourceUrls: [],
+    graphqlDebugBuffer: [],
+    refetchAttempts: 0,
+    refetchSuccesses: 0,
+    refetchFailures: 0,
     pageHookMode: 'none',
     lastBadgeReason: '',
     lastLog: '',
@@ -211,6 +215,110 @@
     (document.head || document.documentElement).appendChild(script);
   }
 
+  function graphqlOpNameFromUrl(url) {
+    try {
+      const path = new URL(url, location.origin).pathname;
+      return decodeURIComponent(path.split('/').filter(Boolean).pop() || '');
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function shouldCaptureGraphqlUrl(url) {
+    const op = graphqlOpNameFromUrl(url);
+    return /^(HomeTimeline|HomeLatestTimeline|TweetDetail|ListMembers|ListByRestId|ListLatestTweetsTimeline|UserTweets|UserTweetsAndReplies|UserMedia|SearchTimeline|Bookmarks)$/i.test(op);
+  }
+
+  function parseGraphqlUrl(url) {
+    try {
+      const u = new URL(url, location.origin);
+      const params = {};
+      for (const key of ['variables', 'features', 'fieldToggles']) {
+        const value = u.searchParams.get(key);
+        if (!value) continue;
+        try { params[key] = JSON.parse(value); } catch (_) { params[key] = value; }
+      }
+      return { opName: graphqlOpNameFromUrl(url), params };
+    } catch (_) {
+      return { opName: '', params: {} };
+    }
+  }
+
+  function truncateDebugPayload(value, max = 18000) {
+    if (value == null) return value;
+    const text = typeof value === 'string' ? value : JSON.stringify(value);
+    if (text.length <= max) {
+      try { return JSON.parse(text); } catch (_) { return text; }
+    }
+    return `${text.slice(0, max)}\n/* XVM_DEBUG_TRUNCATED ${text.length - max} chars */`;
+  }
+
+  function recordGraphqlDebug(entry) {
+    if (!entry?.url || !GRAPHQL_RE.test(entry.url)) return null;
+    const parsed = parseGraphqlUrl(entry.url);
+    const record = {
+      at: new Date().toISOString(),
+      source: entry.source || 'unknown',
+      method: entry.method || 'GET',
+      url: entry.url,
+      opName: entry.opName || parsed.opName,
+      requestBody: truncateDebugPayload(entry.requestBody || ''),
+      variables: parsed.params.variables,
+      features: parsed.params.features,
+      fieldToggles: parsed.params.fieldToggles,
+      status: entry.status || 0,
+      responseBody: truncateDebugPayload(entry.responseBody || null),
+      error: entry.error || '',
+    };
+    debugState.graphqlDebugBuffer.push(record);
+    while (debugState.graphqlDebugBuffer.length > 10) debugState.graphqlDebugBuffer.shift();
+    updateDebugOverlay();
+    return record;
+  }
+
+  async function refetchGraphqlUrl(url, source = 'resource-refetch') {
+    if (!url || !GRAPHQL_RE.test(url) || !shouldCaptureGraphqlUrl(url)) return;
+    const existing = debugState.graphqlDebugBuffer.find((item) => item.url === url && item.source === source);
+    if (existing) return;
+    debugState.refetchAttempts += 1;
+    try {
+      const response = await fetch(url, {
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { accept: 'application/json' },
+      });
+      const text = await response.text();
+      debugState.refetchSuccesses += response.ok ? 1 : 0;
+      if (!response.ok) debugState.refetchFailures += 1;
+      recordGraphqlDebug({
+        source,
+        method: 'GET',
+        url,
+        status: response.status,
+        responseBody: text,
+      });
+      debugLog('GraphQL resource refetched', { opName: graphqlOpNameFromUrl(url), status: response.status });
+    } catch (err) {
+      debugState.refetchFailures += 1;
+      recordGraphqlDebug({
+        source,
+        method: 'GET',
+        url,
+        error: String(err?.message || err),
+      });
+      debugLog('GraphQL resource refetch failed', { opName: graphqlOpNameFromUrl(url), error: err?.message || String(err) });
+    }
+  }
+
+  function buildDebugBundle() {
+    return {
+      copiedAt: new Date().toISOString(),
+      location: location.href,
+      metrics: collectDebugMetrics(),
+      graphql: debugState.graphqlDebugBuffer,
+    };
+  }
+
   function rememberGraphqlResourceUrl(url, source) {
     if (!url || !GRAPHQL_RE.test(url)) return;
     const urls = debugState.graphqlResourceUrls;
@@ -218,6 +326,7 @@
     while (urls.length > 20) urls.shift();
     debugState.lastLog = `resource:${source}:${url}`.slice(0, 220);
     updateDebugOverlay();
+    refetchGraphqlUrl(url, `performance-${source}`);
   }
 
   function installResourceObserver() {
@@ -263,6 +372,10 @@
       tweetArticles,
       domFallbackTweets: debugState.domFallbackTweets || 0,
       graphqlResourceUrls: debugState.graphqlResourceUrls || [],
+      graphqlDebugItems: debugState.graphqlDebugBuffer || [],
+      refetchAttempts: debugState.refetchAttempts || 0,
+      refetchSuccesses: debugState.refetchSuccesses || 0,
+      refetchFailures: debugState.refetchFailures || 0,
       pageHookMode: debugState.pageHookMode || 'none',
       badgeMountAttempts: debugState.badgeMountAttempts || 0,
       badgeMounts: debugState.badgeMounts || 0,
@@ -274,6 +387,11 @@
 
   function updateDebugOverlay() {
     const panel = document.getElementById('xvm-debug-panel');
+    const badge = document.getElementById('xvm-debug-launcher');
+    if (badge) {
+      badge.textContent = `X${debugState.capturedGraphql || debugState.domFallbackTweets ? '*' : ''}`;
+      badge.title = `XVM Debug: GQL ${debugState.capturedGraphql || 0}, DOM ${debugState.domFallbackTweets || 0}, refetch ${debugState.refetchSuccesses || 0}/${debugState.refetchAttempts || 0}`;
+    }
     if (!panel) return;
     const m = collectDebugMetrics();
     panel.querySelector('[data-xvm-debug-body]').innerHTML = `
@@ -284,6 +402,8 @@
       <div><b>tweetArticles</b>: ${m.tweetArticles}</div>
       <div><b>pageHookMode</b>: ${escapeHtml(m.pageHookMode)}</div>
       <div><b>graphqlResourceUrls</b>: ${m.graphqlResourceUrls.length}</div>
+      <div><b>graphqlBuffer</b>: ${m.graphqlDebugItems.length}</div>
+      <div><b>refetch</b>: ${m.refetchSuccesses}/${m.refetchAttempts} ok, ${m.refetchFailures} fail</div>
       <div><b>leaderboardItems</b>: ${m.leaderboardItems}</div>
       <div><b>domFallbackTweets</b>: ${m.domFallbackTweets}</div>
       <div><b>badgeAttempts/mounts</b>: ${m.badgeMountAttempts} / ${m.badgeMounts}</div>
@@ -295,31 +415,53 @@
 
   function installDebugOverlay() {
     if (!document.body || document.getElementById('xvm-debug-panel')) return;
+    const launcher = document.createElement('button');
+    launcher.id = 'xvm-debug-launcher';
+    launcher.type = 'button';
+    launcher.textContent = 'X';
+    launcher.setAttribute('aria-label', 'Open XVM debug panel');
+    document.body.appendChild(launcher);
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'xvm-debug-backdrop';
+    document.body.appendChild(backdrop);
+
     const panel = document.createElement('div');
     panel.id = 'xvm-debug-panel';
+    panel.hidden = true;
     panel.innerHTML = `
       <div class="xvm-debug-head">
         <span>XVM Debug</span>
         <button type="button" data-xvm-debug-eruda>Console</button>
-        <button type="button" data-xvm-debug-copy>Copy</button>
-        <button type="button" data-xvm-debug-min>−</button>
+        <button type="button" data-xvm-debug-copy>Copy Bundle</button>
+        <button type="button" data-xvm-debug-close>×</button>
       </div>
       <div class="xvm-debug-body" data-xvm-debug-body></div>
     `;
     document.body.appendChild(panel);
+    const openPanel = () => {
+      panel.hidden = false;
+      backdrop.hidden = false;
+      updateDebugOverlay();
+    };
+    const closePanel = () => {
+      panel.hidden = true;
+      backdrop.hidden = true;
+    };
+    backdrop.hidden = true;
+    launcher.addEventListener('click', openPanel);
+    backdrop.addEventListener('click', closePanel);
     panel.querySelector('[data-xvm-debug-eruda]').addEventListener('click', loadEruda);
     panel.querySelector('[data-xvm-debug-copy]').addEventListener('click', async () => {
-      const payload = JSON.stringify(collectDebugMetrics(), null, 2);
+      const payload = JSON.stringify(buildDebugBundle(), null, 2);
       try {
         await navigator.clipboard?.writeText?.(payload);
-        debugLog('Debug metrics copied');
+        debugLog('Full debug bundle copied');
       } catch (_) {
-        debugLog('Copy failed; metrics', payload);
+        debugLog('Copy failed; bundle', payload);
       }
     });
-    panel.querySelector('[data-xvm-debug-min]').addEventListener('click', () => {
-      panel.classList.toggle('xvm-debug-minimized');
-    });
+    panel.querySelector('[data-xvm-debug-close]').addEventListener('click', closePanel);
     updateDebugOverlay();
     setInterval(updateDebugOverlay, 1500);
     debugLog('debug overlay installed');
@@ -814,11 +956,12 @@ article[data-testid="tweet"].xvm-article-linked {
 }
 #xvm-debug-panel {
   position: fixed;
-  right: 10px;
-  bottom: 10px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   z-index: 2147483647;
   width: min(360px, calc(100vw - 20px));
-  max-height: 52vh;
+  max-height: 72vh;
   overflow: auto;
   border: 1px solid rgba(34, 197, 94, 0.45);
   border-radius: 10px;
@@ -829,7 +972,31 @@ article[data-testid="tweet"].xvm-article-linked {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
-#xvm-debug-panel.xvm-debug-minimized .xvm-debug-body { display: none; }
+#xvm-debug-panel[hidden],
+#xvm-debug-backdrop[hidden] { display: none !important; }
+#xvm-debug-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  background: rgba(15, 23, 42, 0.28);
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+}
+#xvm-debug-launcher {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2147483647;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(34, 197, 94, 0.7);
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(15, 23, 42, 0.86);
+  color: #86efac;
+  font: 700 11px/20px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+}
 .xvm-debug-head {
   display: flex;
   align-items: center;
@@ -886,6 +1053,7 @@ article[data-testid="tweet"].xvm-article-linked {
     function postGraphql(url, payload, source) {
       if (!payload || typeof payload !== 'object') return;
       debugLog('GraphQL response captured by hook', { source, opName: opNameFromUrl(url), url });
+      recordGraphqlDebug({ source, method: 'GET', url, responseBody: payload, status: 200 });
       pageWindow.postMessage({
         type: 'XVM_TM_GRAPHQL_RESPONSE',
         url,
@@ -899,6 +1067,9 @@ article[data-testid="tweet"].xvm-article-linked {
     const originalFetch = pageWindow.fetch;
     pageWindow.fetch = async function (...args) {
       const url = extractUrl(args[0]);
+      const init = args[1] || {};
+      const requestBody = typeof init.body === 'string' ? init.body : '';
+      if (url && GRAPHQL_RE.test(url)) recordGraphqlDebug({ source: 'userscript-fetch-request', method: init.method || 'GET', url, requestBody });
       const response = await originalFetch.apply(this, args);
       if (url && GRAPHQL_RE.test(url)) {
         response.clone().json().then((payload) => postGraphql(url, payload, 'fetch')).catch(() => {});
@@ -911,6 +1082,7 @@ article[data-testid="tweet"].xvm-article-linked {
     pageWindow.XMLHttpRequest.prototype.open = function (method, url, ...rest) {
       const urlStr = pageWindow.URL && url instanceof pageWindow.URL ? url.href : (typeof url === 'string' ? url : '');
       this.__xvmTmUrl = urlStr;
+      if (urlStr && GRAPHQL_RE.test(urlStr)) recordGraphqlDebug({ source: 'userscript-xhr-request', method, url: urlStr });
       if (urlStr && GRAPHQL_RE.test(urlStr)) {
         this.addEventListener('load', function () {
           try { postGraphql(urlStr, JSON.parse(this.responseText), 'xhr'); } catch (_) {}
@@ -970,11 +1142,17 @@ article[data-testid="tweet"].xvm-article-linked {
         if (!payload || typeof payload !== 'object') return;
         window.postMessage({ type: 'XVM_TM_GRAPHQL_RESPONSE', url, opName: opNameFromUrl(url), source, payload, capturedAt: Date.now() }, '*');
       }
+      function postRequest(url, method, body, source) {
+        if (!url || !GRAPHQL_RE.test(url)) return;
+        window.postMessage({ type: 'XVM_TM_GRAPHQL_REQUEST', url, opName: opNameFromUrl(url), source, method: method || 'GET', body: typeof body === 'string' ? body : '', capturedAt: Date.now() }, '*');
+      }
       try {
         const originalFetch = window.fetch;
         if (typeof originalFetch === 'function') {
           window.fetch = async function (...args) {
             const url = extractUrl(args[0]);
+            const init = args[1] || {};
+            postRequest(url, init.method || 'GET', init.body || '', 'page-fetch');
             const response = await originalFetch.apply(this, args);
             if (url && GRAPHQL_RE.test(url)) {
               response.clone().json().then((payload) => postGraphql(url, payload, 'page-fetch')).catch(() => {});
@@ -992,6 +1170,7 @@ article[data-testid="tweet"].xvm-article-linked {
           proto.open = function (method, url, ...rest) {
             const urlStr = extractUrl(url);
             if (urlStr && GRAPHQL_RE.test(urlStr)) {
+              postRequest(urlStr, method || 'GET', '', 'page-xhr');
               this.addEventListener('load', function () {
                 try { postGraphql(urlStr, JSON.parse(this.responseText), 'page-xhr'); } catch (_) {}
               });
@@ -2106,6 +2285,16 @@ article[data-testid="tweet"].xvm-article-linked {
       debugState.pageHookMode = event.data.mode || debugState.pageHookMode || 'page-status';
       if (event.data.error) debugState.lastIgnoredReason = event.data.error;
       debugLog('page-world hook status', { mode: debugState.pageHookMode, error: event.data.error || '' });
+      return;
+    }
+    if (event.data?.type === 'XVM_TM_GRAPHQL_REQUEST') {
+      recordGraphqlDebug({
+        source: event.data.source || 'page-request',
+        method: event.data.method || 'GET',
+        url: event.data.url || '',
+        requestBody: event.data.body || '',
+      });
+      debugLog('GraphQL request captured', { opName: event.data.opName || graphqlOpNameFromUrl(event.data.url || '') });
       return;
     }
     if (event.data?.type !== 'XVM_TM_GRAPHQL_RESPONSE') return;
