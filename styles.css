@@ -1518,45 +1518,64 @@ img.xvm-liv-img {
 .xvm-lb[data-theme="dark"] .xvm-lb-green  { color: #4ade80; }
 
 /* ============================================================
-   "仅看热帖" hot-only toggle (v1.7.0 #4 — Pro feature in-page
-   entry point on the leaderboard head). State machine is in
-   content.js; styling here.
-   v1.7.0 P1 polish: narrower (max-content), font slightly smaller,
-   padding tightened so it stops swallowing half the head row.
+   "仅看热帖" Pro-feature in-page toggle (v1.7.0 #4).
+   Visual: shadcn pill switch (44×24) matching the popup Filter
+   tab's enable toggle so users see the same control across both
+   surfaces. State machine is in content.js.
    ============================================================ */
 .xvm-lb-hot {
   margin-left: auto;
   flex: 0 0 auto;
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 2px 7px;
-  border: 1px solid rgba(86, 60, 34, 0.22);
-  border-radius: 999px;
-  background: rgba(255, 252, 246, 0.9);
+  display: inline-flex; align-items: center; gap: 6px;
+  cursor: pointer; user-select: none;
+}
+.xvm-lb-hot-label {
+  font-size: 11px; font-weight: 500;
   color: #6e5b4d;
-  font-size: 10.5px; font-weight: 500;
-  line-height: 1.5;
   white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
 }
-.xvm-lb-hot:hover { color: #bf5a2a; border-color: #bf5a2a; }
-.xvm-lb-hot[data-on="1"] {
-  background: #bf5a2a; border-color: #bf5a2a; color: #fffcf6; font-weight: 600;
+.xvm-lb-hot-switch {
+  position: relative; display: inline-block;
+  width: 44px; height: 24px; flex: 0 0 44px;
 }
-.xvm-lb-hot[data-tier="trial"]::after,
-.xvm-lb-hot[data-tier="pro"]::after { content: ""; }
-.xvm-lb-hot[data-tier="free"] {
-  border-style: dashed; opacity: 0.85;
+.xvm-lb-hot-switch input {
+  opacity: 0; width: 0; height: 0; position: absolute;
+}
+.xvm-lb-hot-slider {
+  position: absolute; inset: 0; cursor: pointer;
+  background: rgba(110, 91, 77, 0.30);     /* slate-600-ish light variant */
+  border-radius: 999px;
+  transition: 200ms;
+}
+.xvm-lb-hot-slider::before {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: 200ms;
+}
+.xvm-lb-hot-switch input:checked + .xvm-lb-hot-slider { background: #bf5a2a; }
+.xvm-lb-hot-switch input:checked + .xvm-lb-hot-slider::before { transform: translateX(20px); }
+.xvm-lb-hot-switch input:focus-visible + .xvm-lb-hot-slider {
+  box-shadow: 0 0 0 2px #bf5a2a;
 }
 
-.xvm-lb[data-theme="dark"] .xvm-lb-hot {
-  background: rgba(15, 23, 42, 0.9);
-  border-color: #334155;
-  color: #cbd5e1;
+/* Free users: switch reads as 'locked' — still visible but with a
+   subtle dashed outline + slightly muted slider so users sense it's
+   gated. The click handler will show the upgrade bubble. */
+.xvm-lb-hot[data-tier="free"] .xvm-lb-hot-slider {
+  outline: 1px dashed rgba(110, 91, 77, 0.55);
+  outline-offset: 1px;
 }
-.xvm-lb[data-theme="dark"] .xvm-lb-hot:hover { color: #22d3ee; border-color: #22d3ee; }
-.xvm-lb[data-theme="dark"] .xvm-lb-hot[data-on="1"] {
-  background: #06b6d4; border-color: #06b6d4; color: #0b1120;
+
+.xvm-lb[data-theme="dark"] .xvm-lb-hot-label { color: #cbd5e1; }
+.xvm-lb[data-theme="dark"] .xvm-lb-hot-slider { background: #334155; }
+.xvm-lb[data-theme="dark"] .xvm-lb-hot-switch input:checked + .xvm-lb-hot-slider { background: #06b6d4; }
+.xvm-lb[data-theme="dark"] .xvm-lb-hot-switch input:focus-visible + .xvm-lb-hot-slider {
+  box-shadow: 0 0 0 2px #06b6d4;
+}
+.xvm-lb[data-theme="dark"] .xvm-lb-hot[data-tier="free"] .xvm-lb-hot-slider {
+  outline-color: rgba(148, 163, 184, 0.55);
 }
 
 /* Mini upgrade bubble for free users (rendered below leaderboard head). */

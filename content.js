@@ -990,15 +990,26 @@ function ensureLeaderboard() {
     <div class="xvm-lb-resize-v" aria-hidden="true"></div>
   `;
   // v1.7.0 #4 — "Hot only" Pro-feature toggle in the leaderboard head.
-  // tier-aware on click (free → bubble; trial/pro → flip filter enable).
-  const hot = document.createElement('button');
+  // Visual: shadcn pill switch (44×24) matching the popup Filter
+  // toggle for cross-surface consistency. Tier-aware click handler
+  // (free → bubble; trial/pro → flip filter enable).
+  const hot = document.createElement('label');
   hot.className = 'xvm-lb-hot';
-  hot.type = 'button';
   hot.dataset.on = '0';
   hot.dataset.tier = 'free';
-  hot.textContent = i18n('contentLbHotOnly') || '仅看热帖';
+  hot.innerHTML = `
+    <span class="xvm-lb-hot-label"></span>
+    <span class="xvm-lb-hot-switch">
+      <input type="checkbox" />
+      <span class="xvm-lb-hot-slider"></span>
+    </span>
+  `;
+  hot.querySelector('.xvm-lb-hot-label').textContent = i18n('contentLbHotOnly') || '仅看热帖';
   leaderboardEl.querySelector('.xvm-lb-head').appendChild(hot);
-  hot.addEventListener('click', onHotToggleClick);
+  // The checkbox 'click' fires when the user clicks anywhere on the label.
+  // We listen on the input directly so we can preventDefault for free
+  // users (don't visually flip the switch — bubble instead).
+  hot.querySelector('input').addEventListener('click', onHotToggleClick);
 
   document.body.appendChild(leaderboardEl);
   applyLeaderboardWidth();
@@ -1073,23 +1084,32 @@ function installLeaderboardFilterStateSync() {
     if (ev.source !== window) return;
     if (ev.data?.type === 'XVM_RATE_SETTINGS_UPDATE' && ev.data.settings) {
       const hot = leaderboardEl?.querySelector('.xvm-lb-hot');
-      if (hot) hot.dataset.on = ev.data.settings.enabled ? '1' : '0';
+      if (!hot) return;
+      const on = !!ev.data.settings.enabled;
+      hot.dataset.on = on ? '1' : '0';
+      const cb = hot.querySelector('input[type="checkbox"]');
+      if (cb && cb.checked !== on) cb.checked = on;
     }
   });
 }
 
-function onHotToggleClick() {
+function onHotToggleClick(ev) {
   const hot = leaderboardEl?.querySelector('.xvm-lb-hot');
   if (!hot) return;
   const tier = hot.dataset.tier || 'free';
   if (tier === 'free') {
+    // Don't visually flip the switch for free users — show the
+    // upgrade bubble instead. preventDefault stops the native
+    // checkbox toggle; checkbox stays unchecked.
+    ev.preventDefault();
     showLeaderboardUpgradeBubble();
     return;
   }
-  // trial / pro — flip rate-filter enable via storage. isolated.js
-  // listens for storage.onChanged and pushes XVM_RATE_SETTINGS_UPDATE
-  // back, which our sync listener uses to flip data-on on the toggle.
-  const next = hot.dataset.on === '1' ? false : true;
+  // trial / pro — let the native checkbox flip, mirror to storage.
+  // isolated.js → XVM_RATE_SETTINGS_UPDATE → installLeaderboardFilterStateSync
+  // syncs data-on back. We don't write data-on here; let the round-trip
+  // confirm the storage actually took.
+  const next = ev.target.checked;
   window.postMessage({
     type: 'XVM_RATE_FILTER_SET_ENABLED',
     enabled: next,
