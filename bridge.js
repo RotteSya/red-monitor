@@ -194,6 +194,82 @@ function safeChromeCall(fn) {
   } catch (e) {}
 }
 
+const LIST_MEMBER_FETCH_REQUEST_KEY = 'xvm_list_member_fetch_request_v1';
+const LIST_MEMBER_FETCH_RESPONSE_KEY = 'xvm_list_member_fetch_response_v1';
+const X_BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA';
+let lastListMemberFetchRequestId = '';
+
+function cookieValue(name) {
+  try {
+    const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return m ? decodeURIComponent(m[1]) : '';
+  } catch (_) {
+    return '';
+  }
+}
+
+function listMemberFetchHeaders() {
+  const ct0 = cookieValue('ct0');
+  const headers = {
+    authorization: `Bearer ${X_BEARER_TOKEN}`,
+    accept: '*/*',
+    'content-type': 'application/json',
+    'x-twitter-active-user': 'yes',
+    'x-twitter-client-language': navigator.language?.slice(0, 2) || 'en',
+  };
+  if (ct0) headers['x-csrf-token'] = ct0;
+  return headers;
+}
+
+function writeListMemberFetchResponse(response) {
+  safeChromeCall(() => chrome.storage.local.set({ [LIST_MEMBER_FETCH_RESPONSE_KEY]: response }));
+}
+
+function handleListMemberFetchRequest(request) {
+  if (!request || typeof request !== 'object') return;
+  if (!request.requestId || request.requestId === lastListMemberFetchRequestId) return;
+  lastListMemberFetchRequestId = request.requestId;
+  const url = String(request.url || '');
+  if (!/^https:\/\/x\.com\/i\/api\/graphql\/[^/]+\/ListMembers\?/.test(url)) {
+    writeListMemberFetchResponse({
+      requestId: request.requestId,
+      ok: false,
+      error: 'Unsupported ListMembers fetch URL',
+      completedAt: Date.now(),
+    });
+    return;
+  }
+  fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: listMemberFetchHeaders(),
+  }).then(async (res) => {
+    let data = null;
+    try { data = await res.json(); } catch (_) {}
+    writeListMemberFetchResponse({
+      requestId: request.requestId,
+      ok: res.ok,
+      status: res.status,
+      data,
+      errors: data?.errors || null,
+      rateLimit: {
+        limit: res.headers.get('x-rate-limit-limit'),
+        remaining: res.headers.get('x-rate-limit-remaining'),
+        reset: res.headers.get('x-rate-limit-reset'),
+      },
+      error: res.ok ? '' : (data?.errors?.[0]?.message || res.statusText || 'GraphQL fetch failed'),
+      completedAt: Date.now(),
+    });
+  }).catch((e) => {
+    writeListMemberFetchResponse({
+      requestId: request.requestId,
+      ok: false,
+      error: e.message || String(e),
+      completedAt: Date.now(),
+    });
+  });
+}
+
 safeChromeCall(() => {
   chrome.storage.sync.get(STORAGE_DEFAULTS, (items) => {
     pushSettings(items);
@@ -414,6 +490,10 @@ safeChromeCall(() => {
 
 safeChromeCall(() => {
   chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes[LIST_MEMBER_FETCH_REQUEST_KEY]) {
+      handleListMemberFetchRequest(changes[LIST_MEMBER_FETCH_REQUEST_KEY].newValue);
+      return;
+    }
     if (areaName === 'local' && changes.xvm_list_member_filter_v1) {
       const settings = changes.xvm_list_member_filter_v1.newValue && typeof changes.xvm_list_member_filter_v1.newValue === 'object'
         ? changes.xvm_list_member_filter_v1.newValue

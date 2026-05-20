@@ -110,6 +110,7 @@ describe('#45 popup tabs structure (mock A)', () => {
       'src/premium/license/tier-logic.js',
       'src/premium/license/popup-pro.js',
       'src/premium/rate-filter/popup-rate-filter.js',
+      'src/premium/list-member-filter/member-source.js',
       'src/premium/list-member-filter/popup-list-member-filter.js',
       'popup.js',
       'popup-dashboard.js',

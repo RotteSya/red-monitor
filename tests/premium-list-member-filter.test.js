@@ -10,6 +10,7 @@ const repo = resolve(here, '..');
 const gate = readFileSync(resolve(repo, 'src/premium/license/gate.js'), 'utf8');
 const bridge = readFileSync(resolve(repo, 'bridge.js'), 'utf8');
 const filter = readFileSync(resolve(repo, 'src/premium/list-member-filter/filter.js'), 'utf8');
+const source = readFileSync(resolve(repo, 'src/premium/list-member-filter/member-source.js'), 'utf8');
 const popup = readFileSync(resolve(repo, 'src/premium/list-member-filter/popup-list-member-filter.js'), 'utf8');
 const html = readFileSync(resolve(repo, 'popup.html'), 'utf8');
 const manifest = JSON.parse(readFileSync(resolve(repo, 'manifest.json'), 'utf8'));
@@ -101,6 +102,7 @@ describe('#60 Pro M2 — X List member filter PoC', () => {
     const leaderboardPanel = html.match(/data-tab-panel="leaderboard"[\s\S]*?(?=<section role="tabpanel")/)?.[0] || '';
     expect(filterPanel).toMatch(/id="list-member-filter-section"/);
     expect(leaderboardPanel).not.toMatch(/list-member-filter-section|lf-/);
+    expect(html).toMatch(/src\/premium\/list-member-filter\/member-source\.js/);
     expect(html).toMatch(/src\/premium\/list-member-filter\/popup-list-member-filter\.js/);
   });
 
@@ -114,8 +116,78 @@ describe('#60 Pro M2 — X List member filter PoC', () => {
     expect(popup).toMatch(/chrome\.storage\.local\.set/);
   });
 
+  it('member-source implements live ListMembers GraphQL with Codex-captured queryId and features', () => {
+    expect(source).toMatch(/QUERY_ID\s*=\s*\{[\s\S]*ListMembers:\s*['"]l90-8FD7I3dxXqJfyxSEeA['"]/);
+    expect(source).toMatch(/ListLatestTweetsTimeline:\s*['"]7UuJsFvnWuZo0HmxrzU42Q['"]/);
+    expect(source).toMatch(/buildListMembersUrl/);
+    expect(source).toMatch(/\/ListMembers\?/);
+    expect(source).not.toMatch(/fieldToggles/);
+    for (const flag of [
+      'responsive_web_graphql_timeline_navigation_enabled',
+      'view_counts_everywhere_api_enabled',
+      'post_ctas_fetch_enabled',
+      'responsive_web_enhance_cards_enabled',
+    ]) {
+      expect(source).toContain(flag);
+    }
+  });
+
+  it('member-source parses the ListMembers response path and user fields from bb-browser evidence', () => {
+    expect(source).toMatch(/data\?\.data\?\.list\?\.members_timeline\?\.timeline\?\.instructions/);
+    expect(source).toMatch(/data\?\.data\?\.list_members_timeline\?\.timeline\?\.instructions/);
+    expect(source).toMatch(/user_results/);
+    expect(source).toMatch(/rest_id/);
+    expect(source).toMatch(/core\.screen_name/);
+    expect(source).toMatch(/core\.name/);
+    expect(source).toMatch(/cursorType/);
+  });
+
+  it('fetches members through an extension-owned storage request queue, not page postMessage SET', () => {
+    expect(source).toMatch(/REQUEST_KEY\s*=\s*['"]xvm_list_member_fetch_request_v1['"]/);
+    expect(source).toMatch(/RESPONSE_KEY\s*=\s*['"]xvm_list_member_fetch_response_v1['"]/);
+    expect(source).toMatch(/requestGraphQL/);
+    expect(source).toMatch(/chrome\.storage\.local\.set/);
+    expect(bridge).toMatch(/LIST_MEMBER_FETCH_REQUEST_KEY\s*=\s*['"]xvm_list_member_fetch_request_v1['"]/);
+    expect(bridge).toMatch(/LIST_MEMBER_FETCH_RESPONSE_KEY\s*=\s*['"]xvm_list_member_fetch_response_v1['"]/);
+    expect(bridge).toMatch(/credentials:\s*['"]include['"]/);
+    expect(bridge).toMatch(/x-csrf-token/);
+    expect(bridge).toMatch(/Bearer/);
+    expect(bridge).not.toMatch(/XVM_LIST_MEMBER_FILTER_SET/);
+  });
+
+  it('popup add/refresh/delete workflow stores real members and blocks empty enable', () => {
+    expect(popup).toMatch(/__xvmListMemberSource/);
+    expect(popup).toMatch(/fetchListMembers/);
+    expect(popup).toMatch(/fetchStatus:\s*['"]ready['"]/);
+    expect(popup).toMatch(/data-action="refresh"|dataset\.action\s*=\s*['"]refresh['"]/);
+    expect(popup).toMatch(/data-action="delete"|dataset\.action\s*=\s*['"]delete['"]/);
+    expect(popup).toMatch(/hasReadyMembers/);
+    expect(popup).toMatch(/settings\.enabled\s*=\s*false/);
+    expect(popup).toMatch(/maxLists:\s*5/);
+    expect(popup).toMatch(/maxMembersPerList:\s*5000/);
+    expect(popup).toMatch(/maxMembersTotal:\s*10000/);
+  });
+
+  it('popup enforces capacity before append, excludes stale members, and serializes fetch UI', () => {
+    expect(popup).toMatch(/duplicate\s*<\s*0\s*&&\s*settings\.lists\.length\s*>=\s*LIMITS\.maxLists/);
+    expect(popup).toMatch(/setMessage\(section,\s*t\(['"]lfLimitLists['"]/);
+    expect(popup).toMatch(/isListStale/);
+    expect(popup).toMatch(/now\s*-\s*list\.fetchedAt\s*>\s*ttlMs/);
+    expect(popup).toMatch(/l\.enabled\s*!==\s*false\s*&&\s*!\s*isListStale\(l\)/);
+    expect(popup).toMatch(/lfStale/);
+    expect(popup).toMatch(/let\s+busy\s*=\s*false/);
+    expect(popup).toMatch(/setBusy\(section,\s*true\)/);
+    expect(popup).toMatch(/setBusy\(section,\s*false\)/);
+  });
+
   it('popup i18n keys exist in all shipped locales', () => {
-    const keys = ['lfTitle', 'lfLockedHint', 'lfEnabled', 'lfInputLabel', 'lfAdd', 'lfCaptureHint', 'lfInvalidInput', 'lfAddedOk', 'lfMembers'];
+    const keys = [
+      'lfTitle', 'lfLockedHint', 'lfEnabled', 'lfInputLabel', 'lfAdd',
+      'lfCaptureHint', 'lfInvalidInput', 'lfAddedOk', 'lfMembers',
+      'lfRefresh', 'lfDelete', 'lfFetching', 'lfFetchOk', 'lfFetchFailed',
+      'lfSourceMissing', 'lfReady', 'lfStale', 'lfError', 'lfEmptyMembers',
+      'lfDeletedOk', 'lfLimitLists', 'lfLimitMembers',
+    ];
     for (const locale of ['en', 'zh_CN', 'ja']) {
       const messages = JSON.parse(readFileSync(resolve(repo, `_locales/${locale}/messages.json`), 'utf8'));
       for (const key of keys) {

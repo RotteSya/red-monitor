@@ -1,7 +1,8 @@
 // === X List member filter settings (popup context) ===
 //
-// Minimal M2 PoC entry. It persists list metadata/cache placeholders to
-// chrome.storage.local; MAIN-world filter.js consumes the same key.
+// Persists list metadata/member cache to chrome.storage.local; MAIN-world
+// filter.js consumes the same key. Member fetches go through member-source.js,
+// which queues authenticated GraphQL requests for the x.com bridge.
 
 (function () {
   const STORAGE_KEY = 'xvm_list_member_filter_v1';
@@ -10,6 +11,11 @@
     ttlMs: 24 * 60 * 60 * 1000,
     scopes: { home: true, list: true, profile: true, status: true },
     lists: [],
+  };
+  const LIMITS = globalThis.__xvmListMemberSource?.LIMITS || {
+    maxLists: 5,
+    maxMembersPerList: 5000,
+    maxMembersTotal: 10000,
   };
 
   function t(key, ...subs) {
@@ -67,6 +73,8 @@
       members: Array.isArray(raw.members) ? raw.members : [],
       fetchedAt: Number.isFinite(raw.fetchedAt) ? raw.fetchedAt : 0,
       ttlMs: Number.isFinite(raw.ttlMs) ? raw.ttlMs : DEFAULTS.ttlMs,
+      fetchStatus: ['ready', 'fetching', 'error', 'empty', 'stale'].includes(raw.fetchStatus) ? raw.fetchStatus : (raw.members?.length ? 'ready' : 'empty'),
+      source: raw.source ? String(raw.source) : '',
       lastError: raw.lastError ? String(raw.lastError) : '',
     };
   }
@@ -79,7 +87,7 @@
       || input.match(/\/lists\/(\d+)(?:[/?#]|$)/i)?.[1]
       || numeric;
     if (!idFromUrl && !/^https?:\/\//i.test(input)) return null;
-    return {
+    const parsed = {
       listId: idFromUrl,
       url: /^https?:\/\//i.test(input) ? input : (idFromUrl ? `https://x.com/i/lists/${idFromUrl}` : input),
       name: idFromUrl ? `List ${idFromUrl}` : input,
@@ -87,8 +95,11 @@
       members: [],
       fetchedAt: 0,
       ttlMs: DEFAULTS.ttlMs,
-      lastError: t('lfCaptureHint'),
+      fetchStatus: 'empty',
+      source: '',
+      lastError: '',
     };
+    return parsed;
   }
 
   async function resolveTier() {
@@ -128,15 +139,89 @@
     return section;
   }
 
+  function memberCount(lists) {
+    return (lists || []).reduce((n, l) => n + (Array.isArray(l.members) ? l.members.length : 0), 0);
+  }
+
+  function isListStale(list, now = Date.now()) {
+    const ttlMs = Number.isFinite(list?.ttlMs) ? list.ttlMs : DEFAULTS.ttlMs;
+    return !!(list?.fetchedAt && ttlMs > 0 && now - list.fetchedAt > ttlMs);
+  }
+
+  function activeMemberCount(lists) {
+    return (lists || [])
+      .filter((l) => l.enabled !== false && !isListStale(l))
+      .reduce((n, l) => n + (Array.isArray(l.members) ? l.members.length : 0), 0);
+  }
+
+  function hasReadyMembers(settings) {
+    return activeMemberCount(settings.lists) > 0;
+  }
+
+  function isDuplicate(a, b) {
+    if (a.listId && b.listId) return a.listId === b.listId;
+    return a.url && b.url && a.url === b.url;
+  }
+
+  function statusText(list) {
+    if (isListStale(list)) return t('lfStale');
+    if (list.fetchStatus === 'ready') return t('lfReady');
+    if (list.fetchStatus === 'fetching') return t('lfFetching');
+    if (list.fetchStatus === 'error') return t('lfError');
+    return t('lfEmptyMembers');
+  }
+
+  function setMessage(section, text, kind = 'ok') {
+    const msg = section.querySelector('#lf-msg');
+    msg.textContent = text;
+    msg.dataset.kind = kind;
+  }
+
+  function setBusy(section, busy) {
+    section.dataset.busy = busy ? '1' : '0';
+    for (const el of section.querySelectorAll('#lf-add, #lf-save, #lf-list button')) {
+      el.disabled = !!busy || section.dataset.locked === '1';
+    }
+  }
+
   function renderList(section, settings) {
     const ul = section.querySelector('#lf-list');
     ul.innerHTML = '';
-    for (const list of settings.lists) {
+    settings.lists.forEach((list, idx) => {
       const li = document.createElement('li');
-      li.textContent = `${list.name || list.listId || list.url} · ${list.members.length} ${t('lfMembers')}`;
+      li.dataset.listId = list.listId;
+      li.style.alignItems = 'flex-start';
+      const label = document.createElement('div');
+      label.style.flex = '1';
+      const title = document.createElement('div');
+      title.textContent = `${list.name || list.listId || list.url} · ${list.members.length} ${t('lfMembers')}`;
+      const meta = document.createElement('div');
+      meta.className = 'ft-desc';
+      meta.textContent = list.lastError
+        ? `${statusText(list)} · ${list.lastError}`
+        : `${statusText(list)}${list.fetchedAt ? ` · ${new Date(list.fetchedAt).toLocaleString()}` : ''}`;
+      label.append(title, meta);
+
+      const refresh = document.createElement('button');
+      refresh.type = 'button';
+      refresh.className = 'ft-lb-reset-btn';
+      refresh.dataset.action = 'refresh';
+      refresh.dataset.index = String(idx);
+      refresh.textContent = t('lfRefresh');
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'ft-lb-reset-btn';
+      del.dataset.action = 'delete';
+      del.dataset.index = String(idx);
+      del.textContent = t('lfDelete');
+      const actions = document.createElement('div');
+      actions.style.display = 'flex';
+      actions.style.gap = '4px';
+      actions.append(refresh, del);
+      li.append(label, actions);
       if (list.lastError) li.title = list.lastError;
       ul.appendChild(li);
-    }
+    });
   }
 
   function setLocked(section, locked) {
@@ -155,32 +240,120 @@
 
     const { tier } = await resolveTier();
     setLocked(section, tier === 'free');
+    let busy = false;
+
+    async function fetchAndStore(parsed, replaceIndex = -1) {
+      const source = globalThis.__xvmListMemberSource;
+      if (!source?.fetchListMembers) throw new Error(t('lfSourceMissing'));
+      const existingLists = replaceIndex >= 0
+        ? settings.lists.filter((_, i) => i !== replaceIndex)
+        : settings.lists;
+      if (replaceIndex < 0 && existingLists.length >= LIMITS.maxLists) {
+        throw new Error(t('lfLimitLists', LIMITS.maxLists));
+      }
+      const result = await source.fetchListMembers(parsed, { maxMembers: LIMITS.maxMembersPerList });
+      const nextTotal = memberCount(existingLists) + result.members.length;
+      if (nextTotal > LIMITS.maxMembersTotal) {
+        throw new Error(t('lfLimitMembers', LIMITS.maxMembersTotal));
+      }
+      return normalizeList({
+        ...parsed,
+        ...result,
+        name: result.name || parsed.name,
+        enabled: parsed.enabled !== false,
+        fetchStatus: 'ready',
+        ttlMs: parsed.ttlMs || DEFAULTS.ttlMs,
+        lastError: '',
+      });
+    }
 
     section.querySelector('#lf-add').addEventListener('click', async () => {
-      const msg = section.querySelector('#lf-msg');
+      if (busy) return;
       const parsed = parseListInput(section.querySelector('#lf-list-input').value);
       if (!parsed) {
-        msg.textContent = t('lfInvalidInput');
-        msg.dataset.kind = 'err';
+        setMessage(section, t('lfInvalidInput'), 'err');
         return;
       }
-      settings = normalize({
-        ...settings,
-        lists: [...settings.lists.filter((l) => l.listId !== parsed.listId || !parsed.listId), parsed],
-      });
-      section.querySelector('#lf-list-input').value = '';
-      renderList(section, settings);
-      await storageSet({ [STORAGE_KEY]: settings });
-      msg.textContent = t('lfAddedOk');
-      msg.dataset.kind = 'ok';
+      const duplicate = settings.lists.findIndex((l) => isDuplicate(l, parsed));
+      if (duplicate < 0 && settings.lists.length >= LIMITS.maxLists) {
+        setMessage(section, t('lfLimitLists', LIMITS.maxLists), 'err');
+        return;
+      }
+      busy = true;
+      setBusy(section, true);
+      setMessage(section, t('lfFetching'), 'ok');
+      try {
+        const ready = await fetchAndStore(parsed, duplicate);
+        const lists = duplicate >= 0 ? settings.lists.map((l, i) => i === duplicate ? ready : l) : [...settings.lists, ready];
+        settings = normalize({ ...settings, lists });
+        section.querySelector('#lf-list-input').value = '';
+        renderList(section, settings);
+        await storageSet({ [STORAGE_KEY]: settings });
+        setMessage(section, t('lfFetchOk', ready.members.length), 'ok');
+      } catch (e) {
+        const failed = normalizeList({ ...parsed, fetchStatus: 'error', lastError: e.message || String(e) });
+        const lists = duplicate >= 0 ? settings.lists.map((l, i) => i === duplicate ? failed : l) : [...settings.lists, failed];
+        settings = normalize({ ...settings, lists });
+        renderList(section, settings);
+        await storageSet({ [STORAGE_KEY]: settings });
+        setMessage(section, t('lfFetchFailed', e.message || String(e)), 'err');
+      } finally {
+        busy = false;
+        setBusy(section, false);
+      }
+    });
+
+    section.querySelector('#lf-list').addEventListener('click', async (event) => {
+      if (busy) return;
+      const btn = event.target.closest('button[data-action]');
+      if (!btn) return;
+      const idx = Number(btn.dataset.index);
+      if (!Number.isInteger(idx) || !settings.lists[idx]) return;
+      if (btn.dataset.action === 'delete') {
+        settings = normalize({ ...settings, lists: settings.lists.filter((_, i) => i !== idx) });
+        if (!hasReadyMembers(settings)) settings.enabled = false;
+        section.querySelector('#lf-enabled').checked = settings.enabled;
+        renderList(section, settings);
+        await storageSet({ [STORAGE_KEY]: settings });
+        setMessage(section, t('lfDeletedOk'), 'ok');
+        return;
+      }
+      if (btn.dataset.action === 'refresh') {
+        busy = true;
+        setBusy(section, true);
+        setMessage(section, t('lfFetching'), 'ok');
+        try {
+          const ready = await fetchAndStore(settings.lists[idx], idx);
+          settings = normalize({ ...settings, lists: settings.lists.map((l, i) => i === idx ? ready : l) });
+          renderList(section, settings);
+          await storageSet({ [STORAGE_KEY]: settings });
+          setMessage(section, t('lfFetchOk', ready.members.length), 'ok');
+        } catch (e) {
+          settings = normalize({
+            ...settings,
+            lists: settings.lists.map((l, i) => i === idx ? normalizeList({ ...l, fetchStatus: 'error', lastError: e.message || String(e) }) : l),
+          });
+          renderList(section, settings);
+          await storageSet({ [STORAGE_KEY]: settings });
+          setMessage(section, t('lfFetchFailed', e.message || String(e)), 'err');
+        } finally {
+          busy = false;
+          setBusy(section, false);
+        }
+      }
     });
 
     section.querySelector('#lf-save').addEventListener('click', async () => {
       settings = normalize({ ...settings, enabled: section.querySelector('#lf-enabled').checked });
+      if (settings.enabled && !hasReadyMembers(settings)) {
+        settings.enabled = false;
+        section.querySelector('#lf-enabled').checked = false;
+        await storageSet({ [STORAGE_KEY]: settings });
+        setMessage(section, t('lfEmptyMembers'), 'err');
+        return;
+      }
       await storageSet({ [STORAGE_KEY]: settings });
-      const msg = section.querySelector('#lf-msg');
-      msg.textContent = t('rfSavedOk');
-      msg.dataset.kind = 'ok';
+      setMessage(section, t('rfSavedOk'), 'ok');
     });
 
     try {
@@ -200,5 +373,5 @@
   }
 
   document.addEventListener('DOMContentLoaded', mount);
-  window.__xvmListMemberFilterPopup = { STORAGE_KEY, DEFAULTS, mount, parseListInput };
+  window.__xvmListMemberFilterPopup = { STORAGE_KEY, DEFAULTS, LIMITS, mount, parseListInput };
 })();
