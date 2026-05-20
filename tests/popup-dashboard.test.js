@@ -305,6 +305,12 @@ describe('#69/#72 user self-test polish', () => {
     expect(contentJs).not.toMatch(/XVM_LIST_MEMBER_FILTER_SET_ENABLED/);
     expect(contentJs).toMatch(/isReadyListMemberFilter/);
     expect(contentJs).toMatch(/contentLbListDisabledSub/);
+    expect(contentJs).toMatch(/LEADERBOARD_HIDE_ATTRS\s*=\s*\[['"]data-xvm-rate-hidden['"],\s*['"]data-xvm-list-member-hidden['"]\]/);
+    expect(contentJs).toMatch(/function\s+isLeaderboardArticleHidden/);
+    expect(contentJs).toMatch(/isLeaderboardArticleHidden\(article\)\)\s*continue/);
+    expect(contentJs).toMatch(/getComputedStyle\(cell\)\.display\s*===\s*['"]none['"]/);
+    expect(contentJs).toMatch(/setTimeout\(renderLeaderboard,\s*80\)/);
+    expect(contentJs).toMatch(/if\s*\(!top\.length\)\s*\{[\s\S]*?list\.innerHTML\s*=\s*['"]['"][\s\S]*?el\.style\.display\s*=\s*['"]none['"]/);
     expect(contentJs).toMatch(/closest\?\.\(['"]\.xvm-lb-controls, \.xvm-lb-hot, \.xvm-lb-list-member, label, button, input, a['"]\)/);
     expect(bridgeJs).not.toMatch(/XVM_LIST_MEMBER_FILTER_SET_ENABLED/);
     expect(bridgeJs).toMatch(/event\.isTrusted/);
@@ -315,6 +321,14 @@ describe('#69/#72 user self-test polish', () => {
     expect(bridgeJs).toMatch(/xvm_list_member_filter_v1/);
     expect(/\.xvm-lb-hot\[data-tier="free"\]\s+\.xvm-lb-pro-badge\s*\{[\s\S]*?display:\s*inline-flex/.test(stylesCss)).toBe(true);
     expect(/\.xvm-lb-hot\[aria-disabled="true"\]\s*\{[\s\S]*?cursor:\s*not-allowed/.test(stylesCss)).toBe(true);
+  });
+
+  it('keeps the floating leaderboard list at the configured height when few tweets remain', () => {
+    expect(/\.xvm-lb-list\s*\{[\s\S]*?height:\s*300px/.test(stylesCss)).toBe(true);
+    expect(/\.xvm-lb-list\s*\{[\s\S]*?min-height:\s*120px/.test(stylesCss)).toBe(true);
+    expect(contentJs).toMatch(/list\.style\.height\s*=\s*px/);
+    expect(contentJs).toMatch(/list\.style\.minHeight\s*=\s*px/);
+    expect(contentJs).toMatch(/list\.style\.maxHeight\s*=\s*px/);
   });
 });
 

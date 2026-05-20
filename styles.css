@@ -134,6 +134,8 @@ html[data-xvm-badge-style="inline-classic"] .xvm-badge--red { color: #f44336; ba
   list-style: none;
   margin: 0;
   padding: 2px 0;
+  height: 300px;
+  min-height: 120px;
   max-height: 300px;
   overflow-y: auto;
 }

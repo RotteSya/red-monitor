@@ -1161,10 +1161,12 @@ function installLeaderboardFilterStateSync() {
     if (ev.data?.type === 'XVM_RATE_SETTINGS_UPDATE' && ev.data.settings) {
       _rateFilterEnabled = !!ev.data.settings.enabled;
       setLeaderboardHotSwitchState();
+      if (leaderboardEnabled) setTimeout(renderLeaderboard, 80);
     }
     if (ev.data?.type === 'XVM_LIST_MEMBER_FILTER_UPDATE' && ev.data.settings) {
       _listMemberFilterSettings = ev.data.settings;
       setLeaderboardListMemberSwitchState();
+      if (leaderboardEnabled) setTimeout(renderLeaderboard, 80);
     }
   });
   // Leaderboard can be created after isolated.js did its document_start
@@ -1356,7 +1358,12 @@ function applyLeaderboardHeight() {
   if (!leaderboardEl) return;
   leaderboardHeight = clampLeaderboardHeight(leaderboardHeight);
   const list = leaderboardEl.querySelector('.xvm-lb-list');
-  if (list) list.style.maxHeight = leaderboardHeight + 'px';
+  if (list) {
+    const px = leaderboardHeight + 'px';
+    list.style.height = px;
+    list.style.minHeight = px;
+    list.style.maxHeight = px;
+  }
 }
 function applyLeaderboardPosition() {
   if (!leaderboardEl) return;
@@ -1605,6 +1612,27 @@ function getTweetPermalinkFromArticle(article, tweetId = '') {
   return '';
 }
 
+const LEADERBOARD_HIDE_ATTRS = ['data-xvm-rate-hidden', 'data-xvm-list-member-hidden'];
+
+function leaderboardCellForArticle(article) {
+  return article.closest('[data-testid="cellInnerDiv"]') || article;
+}
+
+function isLeaderboardArticleHidden(article) {
+  if (!article) return true;
+  if (LEADERBOARD_HIDE_ATTRS.some((attr) => article.hasAttribute(attr))) return true;
+  const cell = leaderboardCellForArticle(article);
+  if (cell?.style?.display === 'none' || article.style?.display === 'none') return true;
+  if (typeof getComputedStyle === 'function') {
+    try {
+      if (getComputedStyle(cell).display === 'none' || getComputedStyle(article).display === 'none') return true;
+    } catch (_) {
+      // Best-effort guard for detached nodes in virtualized timelines.
+    }
+  }
+  return false;
+}
+
 function rememberLeaderboardItem(entry) {
   if (!entry?.id) return;
   const prev = leaderboardItemMeta.get(entry.id) || {};
@@ -1622,6 +1650,7 @@ function collectRanked() {
   const seen = new Set();
   const articles = document.querySelectorAll('article[data-testid="tweet"]');
   for (const article of articles) {
+    if (isLeaderboardArticleHidden(article)) continue;
     const id = getTweetIdFromArticle(article);
     if (!id || seen.has(id)) continue;
     const data = tweetDataStore.get(id);
@@ -1729,13 +1758,14 @@ function renderLeaderboard() {
   leaderboardRaf = requestAnimationFrame(() => {
     const el = ensureLeaderboard();
     const top = collectRanked().slice(0, leaderboardCount);
+    const list = el.querySelector('.xvm-lb-list');
     if (!top.length) {
+      if (list) list.innerHTML = '';
       el.style.display = 'none';
       clearLink();
       return;
     }
     el.style.display = 'block';
-    const list = el.querySelector('.xvm-lb-list');
     const visibleCols = leaderboardColumns.filter((c) => c.visible && LB_COLUMN_RENDERERS[c.id]);
     list.innerHTML = top.map((t, i) => {
       const tier = t.velocity >= velocityThresholds.viral ? 'red'
