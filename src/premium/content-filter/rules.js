@@ -37,6 +37,7 @@
         'adult-bio-medium',
         'spam-telegram-domain-medium',
         'spam-private-chat-medium',
+        'spam-marketing-medium',
       ],
     },
     rules: [
@@ -44,7 +45,7 @@
         id: 'hard-telegram-group-funnel',
         type: 'regex',
         field: 'content',
-        value: '(t\\.me|telegram|电报|飞机).{0,24}(群|频道|福利|资源|私信|加)',
+        value: '(t\\.me|telegram|电报|飞机).{0,24}(中推|中文推特|群|频道|福利|资源|私信|加|宝宝|点这里|靠谱|选人|教程|同城|线下|上门|约P|约炮|曰泡)',
         severity: 'block',
       },
       {
@@ -72,14 +73,14 @@
         id: 'adult-name-offline-high',
         type: 'regex',
         field: 'name',
-        value: '(线下|约.{0,4}(线下|同城))',
+        value: '(同城上门|同城约|约见|约P|固炮|曰泡|上门|资源入口|线下约见|真实约见|看我(简介|主页|置顶)|点我(头像|主页)|点击主页)',
         severity: 'high',
       },
       {
         id: 'adult-location-offline-high',
         type: 'regex',
         field: 'location',
-        value: '(约线下|(同城|附近).{0,6}(可约|线下|见面))',
+        value: '(联系.{0,6}(直接)?点击大号|点击大号|看大号|约线下|(同城|附近).{0,6}(可约|线下|见面))',
         severity: 'high',
       },
       {
@@ -114,7 +115,7 @@
         id: 'spam-bio-zhongtui-high',
         type: 'regex',
         field: 'bio',
-        value: '(中推|中文推特|电报|telegram|频道|福利|资源|私信|加群|接推广)',
+        value: '(中推|中文推特|电报|telegram|频道|福利|私信|加群|接推广|福利.{0,4}资源|电报.{0,12}资源|t\\.me.{0,20}资源)',
         severity: 'high',
       },
       {
@@ -136,6 +137,13 @@
         type: 'regex',
         field: 'content',
         value: '(私信|私讯|加我|进群|群聊).{0,16}(福利|资源|项目|带你|名额)',
+        severity: 'medium',
+      },
+      {
+        id: 'spam-marketing-medium',
+        type: 'regex',
+        field: 'content',
+        value: '(进社群|合作.*微信|推广案例|网盘拉新|空投|合约|暴富)',
         severity: 'medium',
       },
       {

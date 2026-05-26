@@ -248,7 +248,8 @@
 
   function telegramFunnel(raw) {
     const text = `${raw.content || ''} ${raw.author?.bio || ''} ${raw.urls.join(' ')}`.toLowerCase();
-    return /(t\.me|telegram|电报|飞机)/i.test(text) && /(中推|中文推特|群|频道|福利|资源|私信|加|join|channel)/i.test(text);
+    return /(t\.me|telegram|电报|飞机)/i.test(text)
+      && /(中推|中文推特|群|频道|福利|资源|私信|加|宝宝|点这里|靠谱|选人|教程|同城|线下|上门|约p|约炮|曰泡|join|channel)/i.test(text);
   }
 
   function activeRules() {

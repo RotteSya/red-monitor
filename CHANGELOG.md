@@ -5,6 +5,19 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ---
 
+## [1.7.3] - 2026-05-26
+
+### Changed
+
+- Made content filtering completely free, including all built-in strengths and unlimited custom keyword / regex / domain rules.
+- Tuned the default content-filter rules with the latest sample files: tighter resource matching to avoid false positives, stronger name/location offline-service detection, and broader Telegram funnel detection.
+
+### Internal
+
+- Added regression coverage for the new sample-driven rules and Free-tier content-filter access.
+
+---
+
 ## [1.7.2] - 2026-05-26
 
 ### Added

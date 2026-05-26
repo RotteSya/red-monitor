@@ -80,14 +80,6 @@
     };
   }
 
-  async function resolveTier() {
-    const TL = globalThis.__xvmTierLogic;
-    if (!TL) return { tier: 'free', daysLeft: 0, source: 'tier-logic-missing' };
-    const lic = await storageGet('xvm_license_v1', null);
-    const trial = await storageGet('xvm_trial_v1', null);
-    return TL.resolveTierFrom(lic, trial, Date.now());
-  }
-
   function builtinRules() {
     return globalThis.__xvmContentFilterBuiltinRules || { levels: { light: [], standard: [], strict: [] }, rules: [] };
   }
@@ -103,7 +95,6 @@
     if (!section) return null;
     section.innerHTML = `
       <h2 class="cf-title" data-k="cfTitle"></h2>
-      <p class="cf-locked-hint" id="cf-locked-hint" data-k="cfLockedHint" hidden></p>
 
       <label class="rf-toggle">
         <span data-k="cfEnabled"></span>
@@ -195,13 +186,6 @@
     });
   }
 
-  function setLocked(section, locked) {
-    section.dataset.locked = locked ? '1' : '0';
-    section.querySelectorAll('input, button, select').forEach((el) => { el.disabled = !!locked; });
-    const hint = section.querySelector('#cf-locked-hint');
-    if (hint) hint.hidden = !locked;
-  }
-
   function flash(section, key) {
     const msg = section.querySelector('#cf-msg');
     msg.textContent = t(key);
@@ -218,8 +202,6 @@
     if (!section) return;
     let settings = normalize(await storageGet(STORAGE_KEY, DEFAULTS));
     applyTo(section, settings);
-    const { tier } = await resolveTier();
-    setLocked(section, tier === 'free');
 
     section.querySelectorAll('[data-level]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -263,10 +245,6 @@
     try {
       chrome.storage.onChanged.addListener(async (changes, area) => {
         if (area !== 'local') return;
-        if ('xvm_license_v1' in changes || 'xvm_trial_v1' in changes) {
-          const r = await resolveTier();
-          setLocked(section, r.tier === 'free');
-        }
         if (STORAGE_KEY in changes) {
           settings = normalize(changes[STORAGE_KEY].newValue);
           applyTo(section, settings);

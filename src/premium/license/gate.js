@@ -26,7 +26,7 @@
 
   const FEATURE_TIER = {
     'rate-filter': 'trial', // M1 paid feature
-    'content-filter': 'trial',
+    'content-filter': 'free',
   };
 
   // Fail-closed default until isolated.js posts a real tier.

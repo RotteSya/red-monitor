@@ -66,7 +66,7 @@ describe('#123 XVM content filter v1', () => {
   });
 
   it('premium gate and isolated bridge expose content-filter feature/settings', () => {
-    expect(gate).toMatch(/['"]content-filter['"]\s*:\s*['"]trial['"]/);
+    expect(gate).toMatch(/['"]content-filter['"]\s*:\s*['"]free['"]/);
     expect(isolated).toMatch(/CONTENT_FILTER_KEY\s*=\s*['"]xvm_content_filter_v1['"]/);
     expect(isolated).toMatch(/XVM_CONTENT_FILTER_SETTINGS_UPDATE/);
     expect(isolated).toMatch(/pushContentFilterSettings/);
@@ -82,6 +82,8 @@ describe('#123 XVM content filter v1', () => {
     expect(popupFilter).toMatch(/whitelistDomains/);
     expect(popupFilter).toMatch(/whitelistFollowing/);
     expect(popupFilter).toMatch(/blacklistHandles/);
+    expect(popupFilter).not.toMatch(/setLocked\(section,\s*tier\s*===\s*['"]free['"]\)/);
+    expect(popupFilter).not.toMatch(/cf-locked-hint/);
   });
 
   it('rules.json declares levels and valid rule shape', () => {
@@ -153,6 +155,12 @@ describe('#123 XVM content filter v1', () => {
       urls: ['https://t.me/example'],
       author: { handle: 'chan', name: 'normal', bio: '', location: '' },
     };
+    const marketingOnly = {
+      id: 'medium-2',
+      content: '合作微信，推广案例和网盘拉新',
+      urls: [],
+      author: { handle: 'growth', name: 'normal', bio: '', location: '' },
+    };
     const lowOnly = {
       id: 'low-1',
       content: '黑丝写真',
@@ -165,14 +173,73 @@ describe('#123 XVM content filter v1', () => {
       urls: [],
       author: { handle: 'spam2', name: '点击主页', bio: '', location: '附近可约线下' },
     };
+    const broadResource = {
+      id: 'resource-1',
+      content: 'hello',
+      urls: [],
+      author: { handle: 'ok', name: '资料分享', bio: '高质量资料和工具整理', location: '' },
+    };
     api.updateSettings({ enabled: true, level: 'light', whitelistFollowing: false });
     expect(api._debug.classify(highName).hide).toBe(false);
     api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
     expect(api._debug.classify(tmeOnly).hide).toBe(false);
+    expect(api._debug.classify(marketingOnly).hide).toBe(false);
     expect(api._debug.classify(highName).hide).toBe(true);
+    expect(api._debug.classify(broadResource).hide).toBe(false);
     api.updateSettings({ enabled: true, level: 'strict', whitelistFollowing: false });
     expect(api._debug.classify(tmeOnly).hide).toBe(true);
+    expect(api._debug.classify(marketingOnly).hide).toBe(true);
     expect(api._debug.classify(lowOnly).hide).toBe(false);
+  });
+
+  it('covers sample follow-up false negatives without broad resource false positives', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+
+    const sameCity = {
+      id: 'fn-1',
+      content: '想找我的宝宝点这里 https://t.co/a',
+      urls: ['https://t.me/sample'],
+      author: {
+        handle: 'Antonia435793',
+        name: '依露~🌸同城上门',
+        bio: '想找我的宝宝点这里✈ t.me/sample 安全靠谱',
+        location: '',
+      },
+    };
+    const clickBig = {
+      id: 'fn-2',
+      content: 'hello',
+      urls: [],
+      author: {
+        handle: 'lrasdfe36391',
+        name: 'normal',
+        bio: '',
+        location: '联系直接点击大号',
+      },
+    };
+    const resourceOk = {
+      id: 'fp-1',
+      content: '分享一份资料',
+      urls: [],
+      author: {
+        handle: 'iBigQiang',
+        name: '大强',
+        bio: '高质量资料和工具整理',
+        location: '',
+      },
+    };
+
+    const sameCityHit = api._debug.classify(sameCity);
+    expect(sameCityHit.hide).toBe(true);
+    expect(sameCityHit.matches.some((m) => m.id === 'adult-name-offline-high')).toBe(true);
+    expect(sameCityHit.matches.some((m) => m.id === 'hard-telegram-group-funnel')).toBe(true);
+
+    const clickBigHit = api._debug.classify(clickBig);
+    expect(clickBigHit.hide).toBe(true);
+    expect(clickBigHit.matches.some((m) => m.id === 'adult-location-offline-high')).toBe(true);
+
+    expect(api._debug.classify(resourceOk).hide).toBe(false);
   });
 
   it('extracts sample-style X reply fields used by content filtering', () => {
