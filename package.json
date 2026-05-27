@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "debug:grok": "node scripts/debug-grok.mjs",
-    "build:dist": "node scripts/build-dist.mjs",
+    "build:dist": "node scripts/sync-rules.mjs && node scripts/build-dist.mjs",
+    "sync:rules": "node scripts/sync-rules.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

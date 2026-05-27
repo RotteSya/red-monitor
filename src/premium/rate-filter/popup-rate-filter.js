@@ -13,18 +13,19 @@
   const STORAGE_KEY = 'xvm_rate_filter_v1';
 
   const DEFAULTS = {
-    enabled: false,           // opt-in per locked decision 2026-05-19
     shortRateThreshold: 1000,
     shortAbsoluteThreshold: 10000,
     longRateThreshold: 1000,
     longAbsoluteThreshold: 10000,
-    scopeHome: true,
-    scopeList: true,
-    scopeProfile: true,
-    scopeStatus: true,
+    // No master enabled switch — each scope is independently opt-in. The
+    // leaderboard's hot toggle controls the *current page's* scope flag.
+    scopeHome: false,
+    scopeList: false,
+    scopeProfile: false,
+    scopeStatus: false,
   };
 
-  const BOOL_KEYS = ['enabled', 'scopeHome', 'scopeList', 'scopeProfile', 'scopeStatus'];
+  const BOOL_KEYS = ['scopeHome', 'scopeList', 'scopeProfile', 'scopeStatus'];
   const NUM_KEYS  = ['shortRateThreshold', 'shortAbsoluteThreshold',
                      'longRateThreshold',  'longAbsoluteThreshold'];
 
@@ -52,7 +53,14 @@
   function normalize(raw) {
     const out = { ...DEFAULTS };
     if (!raw || typeof raw !== 'object') return out;
-    for (const k of BOOL_KEYS) if (k in raw) out[k] = raw[k] !== false;
+    // Legacy migration: pre-scope-flag-redesign storage had a master
+    // `enabled` toggle. If it was false AND the user never explicitly
+    // opted into a scope after migration, fall back to all scopes off.
+    const legacyDisabled = raw.enabled === false && !raw.__scopeMigratedV2;
+    for (const k of BOOL_KEYS) {
+      if (legacyDisabled) { out[k] = false; continue; }
+      if (k in raw) out[k] = raw[k] !== false;
+    }
     for (const k of NUM_KEYS) {
       const v = Number(raw[k]);
       out[k] = Number.isFinite(v) && v >= 0 ? v : DEFAULTS[k];
@@ -82,14 +90,6 @@
     section.innerHTML = `
       <h2 class="rf-title" data-k="rfTitle"></h2>
       <p class="rf-locked-hint" id="rf-locked-hint" data-k="rfLockedHint" hidden></p>
-
-      <label class="rf-toggle">
-        <span data-k="rfEnabled"></span>
-        <span class="switch">
-          <input type="checkbox" id="rf-enabled" />
-          <span class="slider"></span>
-        </span>
-      </label>
 
       <div class="rf-subcard">
         <div class="sub-tabbar" role="tablist">
@@ -133,7 +133,6 @@
       <p class="rf-rule-hint" data-k="rfRuleHint"></p>
 
       <div class="rf-actions">
-        <button type="button" id="rf-save"  class="rf-btn"       data-k="rfSave"></button>
         <button type="button" id="rf-reset" class="rf-btn-ghost" data-k="rfReset"></button>
       </div>
       <div class="rf-msg" id="rf-msg"></div>
@@ -193,13 +192,23 @@
     const { tier } = await resolveTier();
     setLocked(section, tier === 'free');
 
-    section.querySelector('#rf-save').addEventListener('click', async () => {
-      const payload = readFrom(section);
-      await storageSet({ [STORAGE_KEY]: payload });
-      const msg = section.querySelector('#rf-msg');
-      msg.textContent = t('rfSavedOk');
-      msg.dataset.kind = 'ok';
-      setTimeout(() => { msg.textContent = ''; delete msg.dataset.kind; }, 1500);
+    // Debounced auto-save on any input mutation.
+    let saveTimer = null;
+    function scheduleAutoSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        saveTimer = null;
+        const payload = readFrom(section);
+        await storageSet({ [STORAGE_KEY]: payload });
+        const msg = section.querySelector('#rf-msg');
+        msg.textContent = t('cfAutoSaved');
+        msg.dataset.kind = 'ok';
+        setTimeout(() => { msg.textContent = ''; delete msg.dataset.kind; }, 1500);
+      }, 300);
+    }
+    section.querySelectorAll('input').forEach((el) => {
+      const ev = el.type === 'checkbox' ? 'change' : 'input';
+      el.addEventListener(ev, scheduleAutoSave);
     });
 
     section.querySelector('#rf-reset').addEventListener('click', async () => {

@@ -127,14 +127,16 @@ describe('#45 M1 step 1 — premium gate scaffold', () => {
       ).toBe(true);
     });
 
-    it('disabled settings revoke previously hidden tweets without clearing decisions', () => {
+    it('disabled scope revokes previously hidden tweets without clearing decisions', () => {
       const apply = filter.match(/function\s+applyHidesNow\s*\(\)\s*\{[\s\S]*?\n  \}/);
       expect(apply, 'applyHidesNow() body must be locatable').not.toBeNull();
-      expect(/!\s*SETTINGS\.enabled/.test(apply[0]),
-        'applyHidesNow() must check SETTINGS.enabled'
+      // After the scope-per-page redesign the master enabled toggle is
+      // gone; applyHidesNow now gates on currentPageScopeEnabled().
+      expect(/currentPageScopeEnabled\s*\(\s*\)/.test(apply[0]),
+        'applyHidesNow() must check currentPageScopeEnabled() (no master enabled flag any more)'
       ).toBe(true);
       expect(/revoke\s*\(\s*\)\s*;/.test(apply[0]),
-        'applyHidesNow() must revoke hidden cells when the filter is OFF'
+        'applyHidesNow() must revoke hidden cells when the filter is OFF for this scope'
       ).toBe(true);
       expect(/decisions\.clear\s*\(\s*\)/.test(apply[0]),
         'turning OFF must not clear cached decisions; turning ON should be instant'

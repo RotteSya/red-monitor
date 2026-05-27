@@ -85,11 +85,20 @@ function contentFilterDomHarness({ domName = 'Spam @spam', domContent = 'hello',
     },
   };
   const mainCell = attrNode('cell');
+  mainCell.children = [];
+  mainCell.appendChild = (node) => {
+    node.parentElement = mainCell;
+    const i = mainCell.children.indexOf(node);
+    if (i >= 0) mainCell.children.splice(i, 1);
+    mainCell.children.push(node);
+    mainCell.lastElementChild = node;
+  };
+  mainCell.lastElementChild = null;
   const mainArticle = attrNode('article');
   const cell = attrNode('cell');
   const article = attrNode('article');
-  const mainLink = { getAttribute: () => '/rwayne/status/2059141230542671887' };
-  const link = { getAttribute: () => '/spam/status/1' };
+  const mainLink = { getAttribute: () => '/example_main/status/100001' };
+  const link = { getAttribute: () => '/example_reply/status/1' };
   const nameNode = { textContent: domName };
   const textNode = {
     textContent: domContent,
@@ -194,11 +203,16 @@ describe('#123 XVM content filter v1', () => {
     expect(popupFilter).not.toMatch(/cf-locked-hint/);
   });
 
-  it('badge CSS hides empty or incomplete velocity badges', () => {
+  it('badge CSS hides incomplete velocity badges via data-attribute selectors (not :empty)', () => {
     const styles = readFileSync(resolve(repo, 'styles.css'), 'utf8');
-    expect(styles).toMatch(/\.xvm-badge:empty/);
+    // :empty does NOT work for badges — their visible text lives in
+    // ::before/::after pseudo-elements which :empty ignores. Using :empty
+    // would hide every badge in production (regression from earlier fix).
+    expect(styles).not.toMatch(/\.xvm-badge:empty/);
     expect(styles).toMatch(/\.xvm-badge:not\(\[data-prefix\]\)/);
     expect(styles).toMatch(/\.xvm-badge:not\(\[data-velocity\]\)/);
+    expect(styles).toMatch(/\.xvm-badge\[data-prefix=""\]/);
+    expect(styles).toMatch(/\.xvm-badge\[data-velocity=""\]/);
     expect(content).toMatch(/if \(!prefix \|\| !velocityLabel\) continue/);
   });
 
@@ -317,8 +331,8 @@ describe('#123 XVM content filter v1', () => {
       content: '想找我的宝宝点这里 https://t.co/a',
       urls: ['https://t.me/sample'],
       author: {
-        handle: 'Antonia435793',
-        name: '依露~🌸同城上门',
+        handle: 'spam_offline_1',
+        name: '用户A🌸同城上门',
         bio: '想找我的宝宝点这里✈ t.me/sample 安全靠谱',
         location: '',
       },
@@ -328,7 +342,7 @@ describe('#123 XVM content filter v1', () => {
       content: 'hello',
       urls: [],
       author: {
-        handle: 'lrasdfe36391',
+        handle: 'spam_offline_2',
         name: 'normal',
         bio: '',
         location: '联系直接点击大号',
@@ -339,8 +353,8 @@ describe('#123 XVM content filter v1', () => {
       content: '分享一份资料',
       urls: [],
       author: {
-        handle: 'iBigQiang',
-        name: '大强',
+        handle: 'normal_user',
+        name: '普通用户',
         bio: '高质量资料和工具整理',
         location: '',
       },
@@ -358,33 +372,33 @@ describe('#123 XVM content filter v1', () => {
     expect(api._debug.classify(resourceOk).hide).toBe(false);
   });
 
-  it('covers rwayne page name funnels and short symbol spam in standard mode', () => {
+  it('covers page-name funnels and short symbol spam in standard mode', () => {
     const api = loadDebug();
     api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
 
     const commission = {
-      id: 'rwayne-1',
+      id: 'sample-1',
       content: '普通回复',
       urls: [],
-      author: { handle: 'igrusia', name: '50返佣', bio: '', location: '' },
+      author: { handle: 'spam_funnel_a', name: '50返佣', bio: '', location: '' },
     };
     const avatarFunnel = {
-      id: 'rwayne-2',
+      id: 'sample-2',
       content: '普通回复',
       urls: [],
-      author: { handle: 'RKinnear7273', name: '互联网赚（点头像）', bio: '', location: '' },
+      author: { handle: 'spam_funnel_b', name: '互联网赚（点头像）', bio: '', location: '' },
     };
     const symbolSpam = {
-      id: 'rwayne-3',
+      id: 'sample-3',
       content: 'X65b💋',
       urls: [],
       author: { handle: 'sym', name: 'Normal', bio: '', location: '' },
     };
     const strippedSymbolSpam = {
-      id: 'li-1',
+      id: 'sample-4',
       content: 'X65b',
       urls: [],
-      author: { handle: 'TPalo55791', name: 'Tiffiny Palo', bio: '', location: '' },
+      author: { handle: 'spam_short_1', name: 'Sample User', bio: '', location: '' },
     };
     const normalShort = {
       id: 'ok-short',
@@ -396,7 +410,7 @@ describe('#123 XVM content filter v1', () => {
       id: 'fp-1',
       content: '分享一份资料',
       urls: [],
-      author: { handle: 'iBigQiang', name: '大强', bio: '高质量资料和工具整理', location: '' },
+      author: { handle: 'normal_user', name: '普通用户', bio: '高质量资料和工具整理', location: '' },
     };
 
     expect(api._debug.classify(commission).matches.some((m) => m.id === 'spam-name-funnel-high')).toBe(true);
@@ -405,6 +419,246 @@ describe('#123 XVM content filter v1', () => {
     expect(api._debug.classify(strippedSymbolSpam).matches.some((m) => m.id === 'spam-short-symbol-content-high')).toBe(true);
     expect(api._debug.classify(normalShort).hide).toBe(false);
     expect(api._debug.classify(resourceOk).hide).toBe(false);
+  });
+
+  it('covers emoji-grid spam, 免费曰p names, and 小号已禁言 location', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+
+    const emojiGrid = {
+      id: 'grid-1',
+      content: '@example_user 💓w     \n                🌦        \n                               92🤎\n                😗                                         \n📿b',
+      urls: [],
+      author: { handle: 'spam_grid_1', name: 'Sample User', bio: '', location: '' },
+    };
+    const freeFunnelName = {
+      id: 'funnel-1',
+      content: '随便回复',
+      urls: [],
+      author: { handle: 'spam_funnel_c', name: '用户X🩷免费曰p', bio: '', location: '' },
+    };
+    const lockedAltLocation = {
+      id: 'loc-1',
+      content: '随便回复',
+      urls: [],
+      author: { handle: 'spam_loc_1', name: '用户Y💕', bio: '', location: '小号已禁言 可以来这里找我👉' },
+    };
+    const normalShort = {
+      id: 'ok-emoji',
+      content: '@someone 哈哈 真的是这样',
+      urls: [],
+      author: { handle: 'ok', name: '路人', bio: '', location: '北京' },
+    };
+
+    const gridHit = api._debug.classify(emojiGrid);
+    expect(gridHit.hide).toBe(true);
+    expect(gridHit.matches.some((m) => m.id === 'spam-short-symbol-content-high')).toBe(true);
+
+    const nameHit = api._debug.classify(freeFunnelName);
+    expect(nameHit.hide).toBe(true);
+    expect(nameHit.matches.some((m) => m.id === 'spam-name-funnel-high')).toBe(true);
+
+    const locHit = api._debug.classify(lockedAltLocation);
+    expect(locHit.hide).toBe(true);
+    expect(locHit.matches.some((m) => m.id === 'adult-location-template-high')).toBe(true);
+
+    expect(api._debug.classify(normalShort).hide).toBe(false);
+  });
+
+  it('catches 主页打✈️ / sao货 / 太涩了 content-funnel patterns', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+
+    const sao = api._debug.classify({ id: 's1', content: '@x sao货z 没人比她sao❣️ @y 4w', urls: [], author: { handle: 'a', name: 'A', bio: '', location: '' } });
+    expect(sao.hide).toBe(true);
+    expect(sao.matches.some((m) => m.id === 'adult-content-page-funnel-high')).toBe(true);
+
+    const plane = api._debug.classify({ id: 's2', content: '@x 刷了半天的X就她的主页能打✈️了 @y', urls: [], author: { handle: 'a', name: 'A', bio: '', location: '' } });
+    expect(plane.hide).toBe(true);
+    expect(plane.matches.some((m) => m.id === 'adult-content-page-funnel-high')).toBe(true);
+
+    const se = api._debug.classify({ id: 's3', content: '@x 她太涩了 我真顶不住 @y', urls: [], author: { handle: 'a', name: 'A', bio: '', location: '' } });
+    expect(se.hide).toBe(true);
+
+    // Negative: normal usage of 顶不住
+    const normal = api._debug.classify({ id: 'ok1', content: '今天加班顶不住', urls: [], author: { handle: 'normal', name: 'N', bio: '', location: '' } });
+    expect(normal.hide).toBe(false);
+  });
+
+  it('catches 🔞 + 性癖 / 盗图死全家 / 全网仅此一号 bio templates', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+
+    const eve = api._debug.classify({
+      id: 'eve',
+      content: '随便',
+      urls: [],
+      author: { handle: 'spam_adult_1', name: '某用户A', bio: '🔞某用户 165 150 bbw bi tomboy virgin 这里只有性癖\n📢无门无电报 全网仅此一号 全国不可飞 盗图死全家', location: '' },
+    });
+    expect(eve.hide).toBe(true);
+    expect(eve.matches.some((m) => m.id === 'adult-bio-profile-template-high')).toBe(true);
+
+    // Negative: 🔞 standalone (no funnel words) must not hit.
+    const lone = api._debug.classify({
+      id: 'lone',
+      content: '随便',
+      urls: [],
+      author: { handle: 'normal_a', name: 'Normal A', bio: '🔞 注意分级', location: '' },
+    });
+    expect(lone.hide).toBe(false);
+  });
+
+  it('does not false-positive bios that mention 中推 in non-spam context', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+    const ok = api._debug.classify({
+      id: 'biz',
+      content: '随便',
+      urls: [],
+      author: {
+        handle: 'normal_b',
+        name: 'Normal B',
+        bio: '中推用户之一，记录日常',
+        location: '',
+      },
+    });
+    expect(ok.hide).toBe(false);
+  });
+
+  it('does not false-positive 福利鸭 / 福利姬 self-mockery bios when keyword is not paired with spam carrier', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+
+    const ducky = {
+      id: 'fp-ducky',
+      content: '今天好困',
+      urls: [],
+      author: {
+        handle: 'sample_following_a',
+        name: 'Sample',
+        bio: '健身教练，自嘲想当福利鸭',
+        location: '',
+      },
+    };
+    const realSpam = {
+      id: 'tp-spam',
+      content: '福利资源都在群里',
+      urls: [],
+      author: { handle: 'spam_zhongtui', name: 'spam', bio: '福利姬导航', location: '' },
+    };
+
+    expect(api._debug.classify(ducky).hide).toBe(false);
+    expect(api._debug.classify(realSpam).hide).toBe(true);
+  });
+
+  it('DOM-fallback decisions only fire hide on block severity (avoid whitelist false-positives)', () => {
+    // Simulate a reply whose data only ever came from the DOM scraper —
+    // following:false is hardcoded there. A high-severity name match
+    // should NOT hide because the user might be a followed account whose
+    // whitelist status is invisible to DOM. A block-severity match still
+    // hides (telegram funnel etc. — those are unambiguous).
+    const h = contentFilterDomHarness({ domName: '互联网赚（点头像） @spam_user', domContent: '只是个普通回复' });
+    const api = loadDebug({ document: h.document, window: { location: { pathname: '/example_main/status/100001' } } });
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: true });
+    // Do NOT scanForTweets — we want DOM fallback to be the only data source.
+    api._debug.applyHidesNow();
+    // Name matches spam-name-funnel-high (severity: high), but DOM fallback
+    // can't see following, so the gate must hold the hide.
+    expect(h.article.hasAttribute('data-xvm-content-filter-hidden')).toBe(false);
+    expect(h.cell.style.display || '').toBe('');
+  });
+
+  it('DOM-fallback block-severity matches (telegram funnel) still hide', () => {
+    const h = contentFilterDomHarness({
+      domName: 'Sample',
+      domContent: '电报群福利资源都在群里，私信加入',
+    });
+    const api = loadDebug({ document: h.document, window: { location: { pathname: '/example_main/status/100001' } } });
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: true });
+    api._debug.applyHidesNow();
+    expect(h.article.hasAttribute('data-xvm-content-filter-hidden')).toBe(true);
+    expect(h.cell.style.display).toBe('none');
+  });
+
+  it('GraphQL data overwrites a DOM-fallback decision so following:true wins', () => {
+    const h = contentFilterDomHarness({ domName: '互联网赚（点头像） @gyro_clone', domContent: '今天好困' });
+    const api = loadDebug({ document: h.document, window: { location: { pathname: '/example_main/status/100001' } } });
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: true });
+    api._debug.applyHidesNow();
+    expect(h.article.hasAttribute('data-xvm-content-filter-hidden')).toBe(false);
+
+    // Now GraphQL data arrives for the same id with following:true.
+    api._debug.scanForTweets({
+      tweet_results: {
+        result: {
+          legacy: { id_str: '1', full_text: 'today', created_at: '', entities: {} },
+          core: {
+            user_results: {
+              result: {
+                rest_id: 'u1',
+                core: { name: '互联网赚（点头像）', screen_name: 'gyro_clone' },
+                legacy: { name: '互联网赚（点头像）', screen_name: 'gyro_clone', description: '', location: '' },
+                relationship_perspectives: { following: true },
+              },
+            },
+          },
+        },
+      },
+    });
+    api._debug.applyHidesNow();
+    expect(h.article.hasAttribute('data-xvm-content-filter-hidden')).toBe(false);
+    expect(h.cell.style.display || '').toBe('');
+  });
+
+  it('whitelistFollowing short-circuits classification regardless of which rules would match', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: true });
+
+    const followingButTriggers = {
+      id: 'fp-following',
+      content: '福利资源 telegram 群',
+      urls: ['https://t.me/sample'],
+      author: {
+        handle: 'gyro_ai_clone',
+        name: 'Sample Follow',
+        bio: '福利姬导航 中推电报频道',
+        location: '同城上门',
+        following: true,
+      },
+    };
+    const result = api._debug.classify(followingButTriggers);
+    expect(result.hide).toBe(false);
+    expect(result.reason).toBe('whitelist');
+    expect(result.matches).toHaveLength(0);
+  });
+
+  it('catches 曰炮平台 / 真人认证 / 小号已禁言大号 bios even when content slips short-symbol check', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+
+    const candySpam = {
+      id: 'bio-funnel-1',
+      content: '@example_user 🐋刚分手想被爱⛵️i',
+      urls: [],
+      author: {
+        handle: 'spam_bio_1',
+        name: '某账号',
+        bio: '已入驻曰炮平台:👉https://t.co/x，真人认证隐私保护，上平台隐私安全有保障，附近的可加V，小号已禁言大号在这👉@example_alt',
+        location: '',
+      },
+    };
+    const normalBio = {
+      id: 'bio-ok-1',
+      content: '今天天气真好',
+      urls: [],
+      author: { handle: 'ok', name: '路人', bio: '热爱生活的产品经理', location: '' },
+    };
+
+    const hit = api._debug.classify(candySpam);
+    expect(hit.hide).toBe(true);
+    expect(hit.matches.some((m) => m.id === 'adult-bio-funnel-platform-high')).toBe(true);
+
+    expect(api._debug.classify(normalBio).hide).toBe(false);
   });
 
   it('extracts sample-style X reply fields used by content filtering', () => {
@@ -422,9 +676,9 @@ describe('#123 XVM content filter v1', () => {
         user_results: {
           result: {
             rest_id: 'u1',
-            core: { name: 'Cboy', screen_name: 'wishtcday' },
+            core: { name: 'Sample', screen_name: 'sample_user' },
             legacy: {
-              description: '家父马斯克，频道见 t.me/sample',
+              description: '家父马斯克，电报频道见 t.me/sample',
               location: '',
               entities: {
                 url: {
@@ -437,7 +691,7 @@ describe('#123 XVM content filter v1', () => {
       },
     };
     const raw = api._debug.extractTweet(result);
-    expect(raw.author.handle).toBe('wishtcday');
+    expect(raw.author.handle).toBe('sample_user');
     expect(raw.urls).toContain('https://t.me/sample');
     expect(raw.urls).toContain('http://t.me/zhongwentwitter');
     api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
@@ -458,9 +712,76 @@ describe('#123 XVM content filter v1', () => {
     expect(filter).toMatch(/window\.__xvmContentFilterBuiltinRules/);
   });
 
+  it('hot-swaps rules from a remote-rules postMessage and reclassifies cached tweets', () => {
+    const api = loadDebug();
+    api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+
+    // Pretend a brand-new high-severity rule is added remotely that matches
+    // a benign-looking handle which would not hit the bundled ruleset.
+    const probe = {
+      id: 'remote-probe-1',
+      content: '今天天气真好',
+      urls: [],
+      author: { handle: 'ok', name: '某新马甲', bio: '', location: '' },
+    };
+    expect(api._debug.classify(probe).hide).toBe(false);
+    expect(api._debug.rulesSource()).toBe('bundled');
+
+    api._debug.updateRulesFromRemote({
+      version: 99,
+      levels: {
+        light: ['remote-test-name-high'],
+        standard: ['remote-test-name-high'],
+        strict: ['remote-test-name-high'],
+      },
+      rules: [
+        { id: 'remote-test-name-high', type: 'regex', field: 'name', value: '某新马甲', severity: 'high' },
+      ],
+    }, 'remote-fresh');
+
+    expect(api._debug.rulesSource()).toBe('remote-fresh');
+    const hit = api._debug.classify(probe);
+    expect(hit.hide).toBe(true);
+    expect(hit.matches.some((m) => m.id === 'remote-test-name-high')).toBe(true);
+  });
+
+  it('isolated bridge wires the remote-rules fetch, cache, and postMessage path', () => {
+    expect(isolated).toMatch(/CONTENT_FILTER_RULES_KEY\s*=\s*['"]xvm_content_filter_rules_remote_v1['"]/);
+    expect(isolated).toMatch(/REMOTE_RULES_URL\s*=\s*['"]https:\/\/raw\.githubusercontent\.com\/Icy-Cat\/x-viral-monitor\/main\/src\/premium\/content-filter\/rules\.json['"]/);
+    expect(isolated).toMatch(/XVM_CONTENT_FILTER_RULES_UPDATE/);
+    expect(isolated).toMatch(/fetchRemoteContentFilterRules/);
+    expect(isolated).toMatch(/pushCachedContentFilterRules/);
+  });
+
+  it('isolated rule validator rejects regex DoS, unknown types, and future schema versions', () => {
+    // We can't easily run the IIFE in isolation, but we can grep the
+    // hardened constants + heuristic regex out of the source to make sure
+    // future refactors don't drop the defense.
+    expect(isolated).toMatch(/REGEX_MAX_LEN\s*=\s*240/);
+    expect(isolated).toMatch(/REGEX_NESTED_QUANTIFIER/);
+    expect(isolated).toMatch(/REMOTE_RULES_SCHEMA_MAX/);
+    expect(isolated).toMatch(/REMOTE_RULES_MIN_RETRY_MS/);
+    expect(isolated).toMatch(/RULE_TYPES_ALLOWED/);
+  });
+
+  it('manifest grants host_permissions for the remote rules host', () => {
+    expect(Array.isArray(manifest.host_permissions)).toBe(true);
+    expect(manifest.host_permissions).toContain('https://raw.githubusercontent.com/*');
+  });
+
+  it('rules.js bundled fallback stays in sync with rules.json', () => {
+    const rulesJs = readFileSync(resolve(repo, 'src/premium/content-filter/rules.js'), 'utf8');
+    for (const id of rulesJson.rules.map((r) => r.id)) {
+      expect(rulesJs).toContain(id);
+    }
+    for (const id of [...rulesJson.levels.standard, ...rulesJson.levels.strict]) {
+      expect(rulesJs).toContain(id);
+    }
+  });
+
   it('content-filter is opt-in and restores hidden cells when disabled', () => {
     const h = contentFilterDomHarness();
-    const api = loadDebug({ document: h.document, window: { location: { pathname: '/rwayne/status/2059141230542671887' } } });
+    const api = loadDebug({ document: h.document, window: { location: { pathname: '/example_main/status/100001' } } });
     api.updateSettings({ enabled: false, level: 'standard', whitelistFollowing: false });
     api._debug.scanForTweets({ tweet_results: { result: h.tweet } });
     api._debug.applyHidesNow();
@@ -490,7 +811,7 @@ describe('#123 XVM content filter v1', () => {
     expect(h.cell.style.display || '').toBe('');
 
     const detail = contentFilterDomHarness();
-    const detailApi = loadDebug({ document: detail.document, window: { location: { pathname: '/rwayne/status/2059141230542671887' } } });
+    const detailApi = loadDebug({ document: detail.document, window: { location: { pathname: '/example_main/status/100001' } } });
     detailApi.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
     detailApi._debug.scanForTweets({ tweet_results: { result: detail.tweet } });
     detailApi._debug.applyHidesNow();
@@ -500,44 +821,66 @@ describe('#123 XVM content filter v1', () => {
     expect(detail.cell.style.display).toBe('none');
     expect(detailApi._debug.replyArticles()).toHaveLength(1);
     expect(detail.root.children[0]).toBe(detail.mainCell);
-    expect(detail.root.children[1].id).toBe('xvm-content-filter-summary');
-    expect(detail.root.children[2]).toBe(detail.cell);
+    expect(detail.root.children[1]).toBe(detail.cell);
+    expect(detail.mainCell.lastElementChild?.id).toBe('xvm-content-filter-summary');
   });
 
-  it('anchors the summary immediately after the main tweet cell before separators', () => {
+  it('hosts the summary inside the main tweet cell so it shares the virtualized slot', () => {
     const detail = contentFilterDomHarness();
     const separator = attrNode('separator');
     separator.parentElement = detail.root;
     detail.root.children = [detail.mainCell, separator, detail.cell];
     detail.root.firstChild = detail.mainCell;
 
-    const detailApi = loadDebug({ document: detail.document, window: { location: { pathname: '/rwayne/status/2059141230542671887' } } });
+    const detailApi = loadDebug({ document: detail.document, window: { location: { pathname: '/example_main/status/100001' } } });
     detailApi.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
     detailApi._debug.scanForTweets({ tweet_results: { result: detail.tweet } });
     detailApi._debug.applyHidesNow();
 
-    expect(detail.root.children[0]).toBe(detail.mainCell);
-    expect(detail.root.children[1].id).toBe('xvm-content-filter-summary');
-    expect(detail.root.children[2]).toBe(separator);
-    expect(detail.root.children[3]).toBe(detail.cell);
+    expect(detail.root.children).toEqual([detail.mainCell, separator, detail.cell]);
+    expect(detail.mainCell.lastElementChild?.id).toBe('xvm-content-filter-summary');
+    expect(detail.mainCell.lastElementChild?.parentElement).toBe(detail.mainCell);
   });
 
-  it('uses DOM fallback for reply names when GraphQL fields are missing', () => {
-    const h = contentFilterDomHarness({ domName: '互联网赚（点头像） @RKinnear7273', domContent: 'hello' });
-    const api = loadDebug({ document: h.document, window: { location: { pathname: '/rwayne/status/2059141230542671887' } } });
+  it('DOM fallback extracts and classifies high-severity name spam (but defers hiding to GraphQL)', () => {
+    const h = contentFilterDomHarness({ domName: '互联网赚（点头像） @spam_user', domContent: 'hello' });
+    const api = loadDebug({ document: h.document, window: { location: { pathname: '/example_main/status/100001' } } });
     api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
+    api._debug.applyHidesNow();
+    // DOM-only data: classify still flags it, but the gate refuses to hide
+    // until GraphQL confirms (so followed accounts don't get false-hidden).
+    expect(h.article.hasAttribute('data-xvm-content-filter-hidden')).toBe(false);
+    // Confirm the classifier still recognized the pattern — when GraphQL
+    // confirms the user isn't followed, the next applyHidesNow hides them.
+    api._debug.scanForTweets({
+      tweet_results: {
+        result: {
+          legacy: { id_str: '1', full_text: 'hello', entities: {} },
+          core: {
+            user_results: {
+              result: {
+                rest_id: 'u1',
+                core: { name: '互联网赚（点头像）', screen_name: 'spam_user' },
+                legacy: { name: '互联网赚（点头像）', screen_name: 'spam_user', description: '', location: '' },
+                relationship_perspectives: { following: false },
+              },
+            },
+          },
+        },
+      },
+    });
     api._debug.applyHidesNow();
     expect(h.article.hasAttribute('data-xvm-content-filter-hidden')).toBe(true);
     expect(h.cell.style.display).toBe('none');
   });
 
-  it('DOM fallback includes emoji alt text for short spam replies', () => {
-    const h = contentFilterDomHarness({ domName: 'Tiffiny Palo @TPalo55791', domContent: 'X 65 b', emojiAlt: '💋' });
-    const api = loadDebug({ document: h.document, window: { location: { pathname: '/Li665508Li/status/2059186392559911332' } } });
+  it('DOM fallback short-symbol spam stays visible until GraphQL confirms', () => {
+    const h = contentFilterDomHarness({ domName: 'Sample User @spam_user', domContent: 'X 65 b', emojiAlt: '💋' });
+    const api = loadDebug({ document: h.document, window: { location: { pathname: '/example_main/status/100003' } } });
     api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
     api._debug.applyHidesNow();
-    expect(h.article.hasAttribute('data-xvm-content-filter-hidden')).toBe(true);
-    expect(h.cell.style.display).toBe('none');
+    // DOM-only short-symbol match is high severity, so it must NOT auto-hide.
+    expect(h.article.hasAttribute('data-xvm-content-filter-hidden')).toBe(false);
   });
 
   it('ignores summary DOM mutations and debounces external observer work', () => {
@@ -595,7 +938,7 @@ describe('#123 XVM content filter v1', () => {
         return null;
       },
     };
-    const api = loadDebug({ document, window: { location: { pathname: '/rwayne/status/2059141230542671887' } } });
+    const api = loadDebug({ document, window: { location: { pathname: '/example_main/status/100001' } } });
     api.updateSettings({ enabled: true, level: 'standard', whitelistFollowing: false });
     api._debug.scanForTweets({ tweet_results: { result: h.tweet } });
     api._debug.applyHidesNow();

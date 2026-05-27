@@ -1086,38 +1086,84 @@ function installLeaderboardTierSync() {
 }
 
 // ── Filter-state sync ──────────────────────────────────────────────────────
-// The hot-only toggle reflects whichever side last changed
-// chrome.storage.local.xvm_rate_filter_v1.enabled. We listen for the
-// settings-update message that isolated.js already broadcasts.
-let _rateFilterEnabled = false;
+// The hot-only toggle reflects the rate-filter's scope flag for the CURRENT
+// page (home / list / profile / status). Each scope is independent so a
+// user who enabled it on home but not on list will see the leaderboard
+// switch flip OFF when navigating to a list — and toggling it on then only
+// enables filtering for the list scope.
+const RESERVED_PROFILE_PATHS = new Set([
+  'compose', 'explore', 'home', 'i', 'jobs', 'messages', 'notifications',
+  'search', 'settings',
+]);
+function scopeFromPath(pathname = window.location.pathname) {
+  const path = String(pathname || '/').split('?')[0].replace(/\/+$/, '') || '/';
+  if (path === '/' || path === '/home') return 'home';
+  if (/^\/i\/lists\/[^/]+/.test(path) || /^\/[^/]+\/lists\/[^/]+/.test(path)) return 'list';
+  if (/^\/[^/]+\/status\/\d+/.test(path)) return 'status';
+  const m = path.match(/^\/([^/]+)$/);
+  if (m && !RESERVED_PROFILE_PATHS.has(m[1])) return 'profile';
+  return null;
+}
+const SCOPE_KEY_FOR = { home: 'scopeHome', list: 'scopeList', profile: 'scopeProfile', status: 'scopeStatus' };
+let _rateFilterScopes = { scopeHome: false, scopeList: false, scopeProfile: false, scopeStatus: false };
+function currentScopeEnabled() {
+  const scope = scopeFromPath();
+  if (!scope) return false;
+  return !!_rateFilterScopes[SCOPE_KEY_FOR[scope]];
+}
 function setLeaderboardHotSwitchState() {
   const hot = leaderboardEl?.querySelector('.xvm-lb-hot');
   if (!hot) return;
   const tier = hot.dataset.tier || 'free';
-  const on = tier !== 'free' && _rateFilterEnabled;
+  const scope = scopeFromPath();
+  const supportedHere = !!scope;
+  const on = tier !== 'free' && supportedHere && currentScopeEnabled();
   hot.dataset.on = on ? '1' : '0';
-  hot.setAttribute('aria-disabled', tier === 'free' ? 'true' : 'false');
+  hot.dataset.scope = scope || '';
+  hot.setAttribute('aria-disabled', (tier === 'free' || !supportedHere) ? 'true' : 'false');
   hot.title = tier === 'free'
     ? (i18n('contentLbHotProTitle') || '流速过滤是 Pro 功能')
-    : '';
+    : (supportedHere ? '' : '此页面不支持流速过滤');
   const cb = hot.querySelector('input[type="checkbox"]');
   if (cb) {
     if (cb.checked !== on) cb.checked = on;
-    cb.disabled = tier === 'free';
+    cb.disabled = tier === 'free' || !supportedHere;
   }
 }
 function installLeaderboardFilterStateSync() {
   window.addEventListener('message', (ev) => {
     if (ev.source !== window) return;
     if (ev.data?.type === 'XVM_RATE_SETTINGS_UPDATE' && ev.data.settings) {
-      _rateFilterEnabled = !!ev.data.settings.enabled;
+      const s = ev.data.settings;
+      _rateFilterScopes = {
+        scopeHome: s.scopeHome !== false && s.scopeHome === true,
+        scopeList: s.scopeList !== false && s.scopeList === true,
+        scopeProfile: s.scopeProfile !== false && s.scopeProfile === true,
+        scopeStatus: s.scopeStatus !== false && s.scopeStatus === true,
+      };
       setLeaderboardHotSwitchState();
       if (leaderboardEnabled) setTimeout(renderLeaderboard, 80);
     }
   });
-  // Leaderboard can be created after isolated.js did its document_start
-  // bootstrap push. Ask the isolated bridge for the current local setting so
-  // the switch and popup start from the same source of truth.
+  // Track SPA navigation: X uses pushState/popstate. When the path changes
+  // the current scope changes too, so refresh the toggle.
+  let lastPath = window.location.pathname;
+  const checkPath = () => {
+    if (window.location.pathname === lastPath) return;
+    lastPath = window.location.pathname;
+    setLeaderboardHotSwitchState();
+  };
+  window.addEventListener('popstate', checkPath);
+  // Hook pushState/replaceState since SPAs don't emit popstate for them.
+  for (const m of ['pushState', 'replaceState']) {
+    const orig = history[m];
+    if (typeof orig !== 'function') continue;
+    history[m] = function () {
+      const r = orig.apply(this, arguments);
+      setTimeout(checkPath, 0);
+      return r;
+    };
+  }
   window.postMessage({ type: 'XVM_RATE_FILTER_REQUEST' }, '*');
 }
 
@@ -1136,21 +1182,24 @@ function onHotToggleClick(ev) {
   const hot = leaderboardEl?.querySelector('.xvm-lb-hot');
   if (!hot) return;
   const tier = hot.dataset.tier || 'free';
+  const scope = scopeFromPath();
   if (tier === 'free') {
-    // Don't visually flip the switch for free users — show the
-    // upgrade bubble instead. preventDefault stops the native
-    // checkbox toggle; checkbox stays unchecked.
     ev.preventDefault();
     showLeaderboardUpgradeBubble();
     return;
   }
-  // trial / pro — let the native checkbox flip, mirror to storage.
-  // isolated.js → XVM_RATE_SETTINGS_UPDATE → installLeaderboardFilterStateSync
-  // syncs data-on back. We don't write data-on here; let the round-trip
-  // confirm the storage actually took.
+  if (!scope) {
+    // Page isn't one of home / list / profile / status — toggling here
+    // has nowhere to write to. Keep the checkbox visually unchanged.
+    ev.preventDefault();
+    return;
+  }
   const next = ev.target.checked;
+  // Storage round-trip via isolated.js → XVM_RATE_SETTINGS_UPDATE will sync
+  // data-on back. We only emit; the round-trip is the source of truth.
   window.postMessage({
-    type: 'XVM_RATE_FILTER_SET_ENABLED',
+    type: 'XVM_RATE_FILTER_SET_SCOPE',
+    scope,
     enabled: next,
   }, '*');
 }

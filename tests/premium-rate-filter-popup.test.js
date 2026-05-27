@@ -60,21 +60,19 @@ describe('#45 rate-filter popup settings (dev1 gap fix)', () => {
     ).toBe(true);
   });
 
-  it('popup-rate-filter.js defaults match locked decisions (2026-05-19 popup redesign)', () => {
-    // enabled defaults to false (opt-in)
-    expect(/enabled:\s*false/.test(popupRf),
-      'default enabled must be false (opt-in per locked decision)'
-    ).toBe(true);
-    // Short: 1000 / 10000, Long: 1000 / 10000 (bumped from PoC after user
-    // testing — see filter.js header comment).
+  it('popup-rate-filter.js defaults match locked decisions (scope-per-page redesign)', () => {
+    // After the scope-per-page redesign, the master `enabled` toggle is
+    // gone. Each scope flag is independently opt-in (default false) so
+    // a fresh install never hides anything until the user toggles a scope.
+    expect(/scopeHome:\s*false\b/.test(popupRf)).toBe(true);
+    expect(/scopeList:\s*false\b/.test(popupRf)).toBe(true);
+    expect(/scopeProfile:\s*false\b/.test(popupRf)).toBe(true);
+    expect(/scopeStatus:\s*false\b/.test(popupRf)).toBe(true);
+    // Threshold defaults unchanged.
     expect(/shortRateThreshold:\s*1000\b/.test(popupRf)).toBe(true);
     expect(/shortAbsoluteThreshold:\s*10000\b/.test(popupRf)).toBe(true);
     expect(/longRateThreshold:\s*1000\b/.test(popupRf)).toBe(true);
     expect(/longAbsoluteThreshold:\s*10000\b/.test(popupRf)).toBe(true);
-    expect(/scopeHome:\s*true\b/.test(popupRf)).toBe(true);
-    expect(/scopeList:\s*true\b/.test(popupRf)).toBe(true);
-    expect(/scopeProfile:\s*true\b/.test(popupRf)).toBe(true);
-    expect(/scopeStatus:\s*true\b/.test(popupRf)).toBe(true);
   });
 
   it('filter.js SETTINGS defaults match popup-rate-filter.js DEFAULTS (mirror)', () => {

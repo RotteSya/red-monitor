@@ -226,16 +226,23 @@ window.addEventListener('message', (event) => {
     return;
   }
 
-  // v1.7.0 #4 — hot-only toggle on the leaderboard writes
-  // chrome.storage.local.xvm_rate_filter_v1.enabled. isolated.js
-  // already handles XVM_RATE_SETTINGS_UPDATE; the toggle just needs a
-  // way to set the boolean without computing the rest of the blob.
-  if (type === 'XVM_RATE_FILTER_SET_ENABLED' && typeof event.data.enabled === 'boolean') {
+  // Leaderboard hot toggle: enable / disable rate-filter for the current
+  // page's scope only. We merge into the existing blob so other scope
+  // flags and threshold values stay untouched.
+  if (type === 'XVM_RATE_FILTER_SET_SCOPE'
+      && typeof event.data.enabled === 'boolean'
+      && typeof event.data.scope === 'string') {
+    const SCOPE_KEY_FOR = { home: 'scopeHome', list: 'scopeList', profile: 'scopeProfile', status: 'scopeStatus' };
+    const key = SCOPE_KEY_FOR[event.data.scope];
+    if (!key) return;
     safeChromeCall(() => {
       const RF_KEY = 'xvm_rate_filter_v1';
       chrome.storage.local.get({ [RF_KEY]: null }, (items) => {
         const cur = items[RF_KEY] && typeof items[RF_KEY] === 'object' ? items[RF_KEY] : {};
-        chrome.storage.local.set({ [RF_KEY]: { ...cur, enabled: event.data.enabled } });
+        // Drop legacy `enabled` field and mark migrated so old client
+        // copies don't fight the new model.
+        const { enabled: _legacy, ...rest } = cur;
+        chrome.storage.local.set({ [RF_KEY]: { ...rest, [key]: event.data.enabled, __scopeMigratedV2: true } });
       });
     });
     return;

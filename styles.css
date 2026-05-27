@@ -18,7 +18,9 @@
   white-space: nowrap;
 }
 
-.xvm-badge:empty,
+/* Hide badges that haven't been populated with both prefix + velocity yet.
+   :empty does NOT work here because the visible text lives in ::before/::after
+   pseudo-elements, which :empty ignores — so :empty would hide every badge. */
 .xvm-badge:not([data-prefix]),
 .xvm-badge:not([data-velocity]),
 .xvm-badge[data-prefix=""],

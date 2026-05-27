@@ -617,3 +617,10 @@ lbResetBtn?.addEventListener('click', () => {
     }
   );
 });
+
+// Footer version: read from manifest so it never drifts from the actual
+// shipped build.
+const versionEl = document.getElementById('popup-version');
+if (versionEl) {
+  try { versionEl.textContent = chrome.runtime.getManifest().version; } catch (_) {}
+}

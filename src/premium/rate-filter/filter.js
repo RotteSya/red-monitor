@@ -50,8 +50,18 @@
 
   function updateSettings(patch) {
     if (!patch || typeof patch !== 'object') return;
-    SETTINGS = { ...SETTINGS, ...patch };
-    // Re-evaluate all known tweets against new thresholds.
+    // Legacy migration: pre-redesign storage had a master `enabled: false`
+    // gate. Treat that as "all scopes off" so an extension update doesn't
+    // surprise users with newly-enabled filtering.
+    const legacyDisabled = patch.enabled === false && !patch.__scopeMigratedV2;
+    const merged = { ...SETTINGS, ...patch };
+    if (legacyDisabled) {
+      merged.scopeHome = false;
+      merged.scopeList = false;
+      merged.scopeProfile = false;
+      merged.scopeStatus = false;
+    }
+    SETTINGS = merged;
     for (const [id, d] of decisions) {
       if (d.raw) decisions.set(id, { ...classify(d.raw), raw: d.raw });
     }
@@ -222,7 +232,7 @@
     // Tier revoke or OFF must restore only nodes this module hid. Decisions
     // stay cached so turning ON again can immediately re-hide already scanned
     // timeline tweets without waiting for another GraphQL response.
-    if (!gateOpen() || !SETTINGS.enabled || !currentPageScopeEnabled()) {
+    if (!gateOpen() || !currentPageScopeEnabled()) {
       revoke();
       return;
     }
