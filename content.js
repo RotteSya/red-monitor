@@ -4,6 +4,7 @@
 (() => {
   const noteDataStore = new Map();
   const noteElementStore = new Map();
+  const notePositionStore = new Map();
   const seenObjects = new WeakSet();
 
   const DEFAULT_THRESHOLDS = { trending: 100, viral: 500 };
@@ -128,6 +129,10 @@
     scanQueued = true;
     requestAnimationFrame(() => {
       scanQueued = false;
+      if (!document.body) {
+        setTimeout(scheduleScan, 50);
+        return;
+      }
       scanInitialState();
       scanDomNotes(document);
       renderBadges();
@@ -195,9 +200,10 @@
     if (!hasNoteShape) return null;
 
     const id = firstString(
-      raw.id, raw.note_id, raw.noteId, raw.noteID,
-      card.id, card.note_id, card.noteId, card.noteID,
-      raw.note?.id, raw.note?.note_id, raw.note?.noteId
+      raw.note_id, raw.noteId, raw.noteID,
+      card.note_id, card.noteId, card.noteID,
+      raw.note?.note_id, raw.note?.noteId,
+      raw.id, card.id, raw.note?.id
     );
     if (!isNoteId(id)) return null;
 
@@ -315,10 +321,28 @@
     for (const el of collectNoteElements(root)) {
       const id = getNoteIdFromElement(el);
       if (!id) continue;
-      noteElementStore.set(id, el);
+      rememberNoteElement(id, el);
       const domData = extractDomNoteData(el, id);
       if (domData) mergeNoteData(domData);
     }
+  }
+
+  function rememberNoteElement(id, el) {
+    if (!id || !el) return;
+    noteElementStore.set(id, el);
+    rememberNotePosition(id, el);
+  }
+
+  function rememberNotePosition(id, el) {
+    if (!id || !el?.isConnected) return;
+    const rect = safeRect(el);
+    if (rect.width < 1 || rect.height < 1) return;
+    notePositionStore.set(id, {
+      top: window.scrollY + rect.top,
+      height: rect.height,
+      href: location.href,
+      updatedAt: Date.now(),
+    });
   }
 
   function collectNoteElements(root = document) {
@@ -370,11 +394,11 @@
   }
 
   function getNoteIdFromElement(el) {
-    const direct = firstString(
-      el.dataset?.noteId, el.dataset?.noteid, el.dataset?.id,
-      el.getAttribute?.('data-note-id'), el.getAttribute?.('data-noteid'), el.getAttribute?.('data-id')
+    const explicit = firstString(
+      el.dataset?.noteId, el.dataset?.noteid,
+      el.getAttribute?.('data-note-id'), el.getAttribute?.('data-noteid')
     );
-    if (isNoteId(direct)) return direct;
+    if (isNoteId(explicit)) return explicit;
 
     const ownHref = el.matches?.('a[href]') ? el.getAttribute('href') : '';
     const fromOwnHref = getNoteIdFromUrl(ownHref);
@@ -388,6 +412,9 @@
 
     const locationId = getNoteIdFromUrl(location.href);
     if (locationId && el.matches?.('.note-detail,.note-container,[class*="note-detail"]')) return locationId;
+
+    const generic = firstString(el.dataset?.id, el.getAttribute?.('data-id'));
+    if (isNoteId(generic)) return generic;
     return '';
   }
 
@@ -688,6 +715,10 @@
 
   function renderLeaderboard() {
     if (!leaderboardEnabled) return hideLeaderboard();
+    if (!document.body) {
+      setTimeout(scheduleLeaderboardRender, 50);
+      return;
+    }
     if (!leaderboardEl) {
       leaderboardEl = document.createElement('aside');
       leaderboardEl.className = 'xvm-lb';
@@ -701,14 +732,16 @@
       `;
       document.body.appendChild(leaderboardEl);
       bindLeaderboardDrag(leaderboardEl);
+      bindLeaderboardList(leaderboardEl.querySelector('.xvm-lb-list'));
       window.postMessage({ type: 'RVM_LB_POS_REQUEST' }, '*');
     }
     leaderboardEl.querySelector('.xvm-lb-title').textContent = i18n('contentLeaderboardTitle');
     const list = leaderboardEl.querySelector('.xvm-lb-list');
+    if (!list) return;
     list.textContent = '';
 
     const items = Array.from(noteDataStore.values())
-      .filter((item) => item.heat > 0)
+      .filter((item) => item.heat > 0 && hasCurrentPageNoteLocation(item.id))
       .sort((a, b) => b.velocity - a.velocity || b.heat - a.heat)
       .slice(0, leaderboardCount);
 
@@ -725,16 +758,6 @@
       row.className = `xvm-lb-item ${badgeClassFor(item.velocity).replace('xvm-badge--', 'xvm-lb-')}`;
       row.dataset.id = item.id;
       row.title = item.title || item.url || '';
-      row.addEventListener('click', () => {
-        const el = noteElementStore.get(item.id);
-        if (el?.isConnected) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.classList.add('xvm-note-focus');
-          setTimeout(() => el.classList.remove('xvm-note-focus'), 1600);
-        } else if (item.url) {
-          location.href = item.url;
-        }
-      });
       for (const col of leaderboardColumns) {
         if (!col.visible) continue;
         const span = document.createElement('span');
@@ -749,6 +772,110 @@
       }
       list.appendChild(row);
     });
+  }
+
+  function bindLeaderboardList(list) {
+    if (!list || list.dataset.xvmClickBound) return;
+    list.dataset.xvmClickBound = '1';
+    list.addEventListener('click', (event) => {
+      const row = event.target?.closest?.('.xvm-lb-item');
+      if (!row || !list.contains(row)) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const item = noteDataStore.get(row.dataset.id);
+      if (!item) return;
+      const el = resolveNoteElement(item.id);
+      if (el) {
+        focusNoteElement(el);
+      } else if (scrollToRememberedNote(item.id)) {
+        retryFocusNote(item.id);
+      } else {
+        showToast(i18n('contentCopyMdNoNoteFound'), { kind: 'error' });
+      }
+    });
+  }
+
+  function hasCurrentPageNoteLocation(id) {
+    const el = noteElementStore.get(id);
+    if (isConnectedNoteElement(el, id)) return true;
+    const pos = notePositionStore.get(id);
+    return !!pos && pos.href === location.href;
+  }
+
+  function resolveNoteElement(id) {
+    if (!id) return null;
+    const stored = noteElementStore.get(id);
+    if (isConnectedNoteElement(stored, id)) return stored;
+    if (stored && !stored.isConnected) noteElementStore.delete(id);
+
+    const found = findNoteElementById(id);
+    if (found) {
+      rememberNoteElement(id, found);
+      const domData = extractDomNoteData(found, id);
+      if (domData) mergeNoteData(domData);
+      return found;
+    }
+
+    scanDomNotes(document);
+    const rescanned = noteElementStore.get(id);
+    return isConnectedNoteElement(rescanned, id) ? rescanned : null;
+  }
+
+  function isConnectedNoteElement(el, id) {
+    if (!el?.isConnected) return false;
+    const foundId = getNoteIdFromElement(el);
+    return !foundId || foundId === id;
+  }
+
+  function findNoteElementById(id) {
+    const attrId = escapeCssAttr(id);
+    const selectors = [
+      `[data-note-id="${attrId}"]`,
+      `[data-noteid="${attrId}"]`,
+      `a[href*="/explore/${attrId}"]`,
+      `a[href*="/search_result/${attrId}"]`,
+      `a[href*="/discovery/item/${attrId}"]`,
+    ].join(',');
+
+    for (const candidate of document.querySelectorAll(selectors)) {
+      const el = candidate.matches?.('a[href]') ? findNoteRoot(candidate) : candidate;
+      if (getNoteIdFromElement(el) === id || getNoteIdFromElement(candidate) === id) return el;
+    }
+
+    const locationId = getNoteIdFromUrl(location.href);
+    if (locationId === id) {
+      for (const selector of ['.note-detail', '.note-container', '.interaction-container', '[class*="note-detail"]']) {
+        const detail = document.querySelector(selector);
+        if (detail) return detail;
+      }
+    }
+    return null;
+  }
+
+  function focusNoteElement(el) {
+    const id = getNoteIdFromElement(el);
+    if (id) rememberNotePosition(id, el);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('xvm-note-focus');
+    setTimeout(() => el.classList.remove('xvm-note-focus'), 1600);
+  }
+
+  function scrollToRememberedNote(id) {
+    const pos = notePositionStore.get(id);
+    if (!pos || pos.href !== location.href) return false;
+    const target = Math.max(0, pos.top - Math.max(80, (window.innerHeight - pos.height) / 2));
+    window.scrollTo({ top: target, behavior: 'smooth' });
+    return true;
+  }
+
+  function retryFocusNote(id) {
+    for (const delay of [260, 700, 1200]) {
+      setTimeout(() => {
+        const el = resolveNoteElement(id);
+        if (el) focusNoteElement(el);
+      }, delay);
+    }
   }
 
   function hideLeaderboard() {
@@ -807,6 +934,7 @@
   }
 
   function showToast(message, options = {}) {
+    if (!document.body) return;
     activeToast?.remove();
     const toast = document.createElement('div');
     toast.className = `xvm-toast ${options.kind ? `xvm-toast--${options.kind}` : ''}`;
@@ -917,7 +1045,27 @@
     }[ch]));
   }
 
-  const observer = new MutationObserver(scheduleScan);
+  function escapeCssAttr(value) {
+    return String(value || '').replace(/["\\]/g, '\\$&');
+  }
+
+  function isXvmOwnedNode(node) {
+    if (!node || node.nodeType !== Node.ELEMENT_NODE) return true;
+    if (node.closest?.('.xvm-lb,.xvm-badge,.xvm-copy-md-button,.xvm-toast')) return true;
+    return String(node.className || '').split(/\s+/).some((cls) => cls.startsWith('xvm-'));
+  }
+
+  function isOwnMutationBatch(mutations) {
+    return mutations.every((mutation) => {
+      const nodes = [...mutation.addedNodes, ...mutation.removedNodes];
+      return nodes.length > 0 && nodes.every(isXvmOwnedNode);
+    });
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    if (isOwnMutationBatch(mutations)) return;
+    scheduleScan();
+  });
   function start() {
     scheduleScan();
     observer.observe(document.documentElement || document.body, { childList: true, subtree: true });

@@ -89,6 +89,25 @@ describe('Xiaohongshu runtime bridge/content contract', () => {
     expect(contentJs).not.toMatch(/tweet_results|HomeTimeline|Retweeters|grok\.x\.com|data-testid="tweet"/i);
   });
 
+  it('keeps leaderboard jumps bound to note links instead of generic DOM ids', () => {
+    const fn = contentJs.match(/function getNoteIdFromElement\(el\) \{([\s\S]*?)\n  \}/)?.[1] || '';
+    expect(fn.indexOf('fromOwnHref')).toBeGreaterThan(-1);
+    expect(fn.indexOf('const generic')).toBeGreaterThan(-1);
+    expect(fn.indexOf('fromOwnHref')).toBeLessThan(fn.indexOf('const generic'));
+    expect(contentJs).toContain('resolveNoteElement(item.id)');
+    expect(contentJs).toContain('findNoteElementById(id)');
+    expect(contentJs).toContain('bindLeaderboardList(leaderboardEl.querySelector');
+    expect(contentJs).toContain('isOwnMutationBatch(mutations)');
+    expect(contentJs).toContain('scrollToRememberedNote(item.id)');
+  });
+
+  it('prefers explicit Xiaohongshu note ids from API payloads', () => {
+    const fn = contentJs.match(/function extractNoteData\(raw\) \{([\s\S]*?)\n  function extractImageUrl/)?.[1] || '';
+    expect(fn.indexOf('raw.note_id')).toBeGreaterThan(-1);
+    expect(fn.indexOf('raw.id')).toBeGreaterThan(-1);
+    expect(fn.indexOf('raw.note_id')).toBeLessThan(fn.indexOf('raw.id'));
+  });
+
   it('declares required content i18n keys in all locales', () => {
     const required = [
       'extName',
