@@ -43,6 +43,9 @@ const lbResetBtn = document.getElementById('lb-reset-pos');
 const lbResetMsg = document.getElementById('lb-reset-msg');
 const themeToggle = document.getElementById('theme-toggle');
 const versionEl = document.getElementById('popup-version');
+const badgePreviewEl = document.getElementById('badge-preview');
+const pvUpEl = document.getElementById('pv-up');
+const pvHotEl = document.getElementById('pv-hot');
 
 let localeBundle = null;
 let currentLanguage = 'auto';
@@ -136,6 +139,12 @@ function applyTheme(pref) {
     const icon = currentTheme === 'light' ? 'icon-sun' : currentTheme === 'dark' ? 'icon-moon' : 'icon-monitor';
     use.setAttribute('href', `#${icon}`);
   }
+  if (themeToggle) {
+    const labelKey = currentTheme === 'light' ? 'themeLight' : currentTheme === 'dark' ? 'themeDark' : 'themeSystem';
+    const label = t(labelKey);
+    themeToggle.title = label;
+    themeToggle.setAttribute('aria-label', label);
+  }
 }
 
 function normalizeThresholds(raw) {
@@ -176,6 +185,28 @@ function flash(message) {
   statusEl.textContent = message;
   clearTimeout(flash._timer);
   flash._timer = setTimeout(() => { statusEl.textContent = ''; }, 1800);
+}
+
+// Mirrors content.js formatVelocity so the popup preview reads exactly like
+// the badge shown on xiaohongshu.com (e.g. "1.2万/h", "320/h").
+function formatCompact(value) {
+  const n = Math.max(0, Math.round(Number(value) || 0));
+  const trim = (v) => (v >= 10 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, ''));
+  if (n >= 100_000_000) return `${trim(n / 100_000_000)}亿`;
+  if (n >= 10_000) return `${trim(n / 10_000)}万`;
+  if (n >= 1000) return `${trim(n / 1000)}k`;
+  return String(n);
+}
+
+// Live "what will the badges look like" preview: ties the two threshold
+// numbers and the badge-style picker together so the user sees the effect of
+// every control in one place.
+function renderBadgePreview() {
+  if (!pvUpEl || !pvHotEl) return;
+  const thresholds = normalizeThresholds({ trending: trendingInput.value, viral: viralInput.value });
+  pvUpEl.textContent = `UP ${formatCompact(thresholds.trending)}/h`;
+  pvHotEl.textContent = `HOT ${formatCompact(thresholds.viral)}/h`;
+  badgePreviewEl?.classList.toggle('inline', badgeStyleSelect.value === 'inline-classic');
 }
 
 function renderColumns() {
@@ -222,6 +253,7 @@ async function loadState() {
     languageSelect.value = currentLanguage;
     columnsState = normalizeColumns(items.leaderboardColumns);
     renderColumns();
+    renderBadgePreview();
     applyTheme(items.theme || 'system');
   });
 }
@@ -235,12 +267,17 @@ form.addEventListener('submit', (event) => {
   const thresholds = normalizeThresholds({ trending: trendingInput.value, viral: viralInput.value });
   trendingInput.value = thresholds.trending;
   viralInput.value = thresholds.viral;
+  renderBadgePreview();
   chrome.storage.sync.set({
     ...thresholds,
     badgeStyle: badgeStyleSelect.value === 'inline-classic' ? 'inline-classic' : 'pill-solid',
     featureCopyAsMarkdown: copyMdToggle.checked,
   }, () => flash(t('flashSaved')));
 });
+
+// Live preview as the user types — no save needed to see the effect.
+trendingInput.addEventListener('input', renderBadgePreview);
+viralInput.addEventListener('input', renderBadgePreview);
 
 resetBtn.addEventListener('click', () => {
   chrome.storage.sync.set({
@@ -252,6 +289,7 @@ resetBtn.addEventListener('click', () => {
     viralInput.value = DEFAULT_THRESHOLDS.viral;
     badgeStyleSelect.value = DEFAULT_FEATURES.badgeStyle;
     copyMdToggle.checked = DEFAULT_FEATURES.featureCopyAsMarkdown;
+    renderBadgePreview();
     flash(t('flashReset'));
   });
 });
@@ -263,6 +301,7 @@ copyMdToggle.addEventListener('change', () => {
 });
 
 badgeStyleSelect.addEventListener('change', () => {
+  renderBadgePreview();
   chrome.storage.sync.set({ badgeStyle: badgeStyleSelect.value }, () => flash(t('flashBadgeStyleSaved')));
 });
 
