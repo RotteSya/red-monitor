@@ -9,15 +9,15 @@
     "default_popup": "popup.html",
     "default_title": "__MSG_extName__",
     "default_icon": {
-      "16": "icons/icon-v3-16.png",
-      "48": "icons/icon-v3-48.png",
-      "128": "icons/icon-v3-128.png"
+      "16": "icons/icon-v4-16.png",
+      "48": "icons/icon-v4-48.png",
+      "128": "icons/icon-v4-128.png"
     }
   },
   "icons": {
-    "16": "icons/icon-v3-16.png",
-    "48": "icons/icon-v3-48.png",
-    "128": "icons/icon-v3-128.png"
+    "16": "icons/icon-v4-16.png",
+    "48": "icons/icon-v4-48.png",
+    "128": "icons/icon-v4-128.png"
   },
   "content_scripts": [
     {
