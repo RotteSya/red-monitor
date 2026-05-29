@@ -62,6 +62,14 @@ html[data-xvm-badge-style="inline-classic"] .xvm-badge {
   font-size: 11px;
 }
 
+/* Note detail page: pin overlays to the top-left of the media area so they stay
+   visible while the note text and comments scroll, clear of the close button. */
+.xvm-badge--detail {
+  top: 12px;
+  left: 12px;
+  right: auto;
+}
+
 .xvm-copy-md-button {
   position: absolute;
   top: 38px;
@@ -91,6 +99,12 @@ html[data-xvm-badge-style="inline-classic"] .xvm-badge {
   width: 15px;
   height: 15px;
   fill: currentColor;
+}
+
+.xvm-copy-md-button--detail {
+  top: 44px;
+  left: 12px;
+  right: auto;
 }
 
 .xvm-lb {

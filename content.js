@@ -577,6 +577,7 @@
 
       const host = getOverlayHost(el);
       ensurePositioned(host);
+      if (isDetailMediaHost(host)) badge.classList.add('xvm-badge--detail');
       host.appendChild(badge);
       el.setAttribute('data-xvm-scored', '1');
     }
@@ -585,7 +586,8 @@
   function renderCopyButtons() {
     for (const [id, el] of noteElementStore) {
       if (!el.isConnected) continue;
-      const existing = el.querySelector?.(':scope > .xvm-copy-md-button');
+      const host = getOverlayHost(el);
+      const existing = host.querySelector?.(':scope > .xvm-copy-md-button');
       if (!copyAsMarkdownEnabled) {
         existing?.remove();
         continue;
@@ -593,7 +595,6 @@
       if (existing) continue;
       const data = noteDataStore.get(id);
       if (!data) continue;
-      const host = getOverlayHost(el);
       ensurePositioned(host);
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -608,14 +609,28 @@
         const ok = await copyTextToClipboard(buildNoteMarkdown(latest, el));
         showToast(ok ? i18n('contentCopyMdDone') : i18n('contentCopyMdCopyFailed'), { kind: ok ? 'success' : 'error' });
       });
+      if (isDetailMediaHost(host)) btn.classList.add('xvm-copy-md-button--detail');
       host.appendChild(btn);
     }
   }
 
+  function isDetailNoteElement(el) {
+    return !!el.matches?.('.note-detail,.note-container,.interaction-container,[class*="note-detail"]');
+  }
+
+  function isDetailMediaHost(el) {
+    return !!el.matches?.('.media-container,[class*="media-container"]');
+  }
+
   function getOverlayHost(el) {
-    return el.matches?.('.note-detail,.note-container,[class*="note-detail"]')
-      ? (el.querySelector?.('.note-content,.interaction-container,[class*="content"]') || el)
-      : el;
+    if (!isDetailNoteElement(el)) return el;
+    // On the note detail page, anchor overlays to the media area: it stays put
+    // while the note text and comments scroll, and the panel's top edge is
+    // crowded by the author row, follow button, and close control.
+    const root = el.closest?.('.note-container,.note-detail,[class*="note-detail"]') || el;
+    return root.querySelector?.('.media-container,[class*="media-container"]')
+      || el.querySelector?.('.note-content,.interaction-container,[class*="content"]')
+      || el;
   }
 
   function ensurePositioned(el) {
