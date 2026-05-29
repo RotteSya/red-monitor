@@ -1,1663 +1,288 @@
-/* === Badge: pill-solid (default) === */
+.xvm-badge,
+.xvm-copy-md-button,
+.xvm-lb,
+.xvm-toast {
+  font-family: Inter, Avenir Next, PingFang SC, Microsoft YaHei, sans-serif;
+}
+
 .xvm-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 50;
   display: inline-flex;
   align-items: center;
-  align-self: center;
   gap: 4px;
-  margin-left: auto;
-  padding: 2px 7px;
+  max-width: calc(100% - 16px);
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 16px;
-  height: fit-content;
-  color: #fff;
-  vertical-align: middle;
-  cursor: default;
-  user-select: none;
-  white-space: nowrap;
-}
-
-/* Hide badges that haven't been populated with both prefix + velocity yet.
-   :empty does NOT work here because the visible text lives in ::before/::after
-   pseudo-elements, which :empty ignores — so :empty would hide every badge. */
-.xvm-badge:not([data-prefix]),
-.xvm-badge:not([data-velocity]),
-.xvm-badge[data-prefix=""],
-.xvm-badge[data-velocity=""] {
-  display: none !important;
-}
-
-.xvm-badge::before { content: attr(data-prefix); }
-.xvm-badge::after { content: attr(data-velocity) "/h"; }
-
-/* Rate filter hide is driven by ONE root attribute toggle so flipping
-   the leaderboard switch off doesn't iterate-and-mutate every hidden
-   article in JS (which used to layout-thrash and stall the page when
-   N hidden tweets returned). filter.js sets [data-xvm-rate-hidden] on
-   cell + article when classified to hide; flipping
-   data-xvm-rate-filter-on on <html> reveals/conceals them all in a
-   single style recalculation. */
-html[data-xvm-rate-filter-on] article[data-xvm-rate-hidden],
-html[data-xvm-rate-filter-on] [data-testid="cellInnerDiv"][data-xvm-rate-hidden] {
-  display: none !important;
-}
-
-.xvm-badge--green { color: #15803d; background: rgba(22, 163, 74, 0.25); }
-.xvm-badge--orange { color: #c2410c; background: rgba(234, 88, 12, 0.25); }
-.xvm-badge--red { color: #b91c1c; background: rgba(220, 38, 38, 0.25); }
-
-/* === Badge: inline-classic === */
-html[data-xvm-badge-style="inline-classic"] .xvm-badge {
-  gap: 0;
-  margin-left: auto;
-  margin-right: 4px;
-  padding: 0;
-  border-radius: 0;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 20px;
-  color: rgb(83, 100, 113);
-  background: transparent;
-  transition: color 0.2s;
-}
-html[data-xvm-badge-style="inline-classic"] .xvm-badge::before {
-  content: attr(data-prefix) " " attr(data-velocity) "/h";
-}
-html[data-xvm-badge-style="inline-classic"] .xvm-badge::after { content: ""; }
-html[data-xvm-badge-style="inline-classic"] .xvm-badge:hover { color: rgb(29, 155, 240); }
-html[data-xvm-badge-style="inline-classic"] .xvm-badge--green { color: #4caf50; background: transparent; }
-html[data-xvm-badge-style="inline-classic"] .xvm-badge--orange { color: #ff9800; background: transparent; }
-html[data-xvm-badge-style="inline-classic"] .xvm-badge--red { color: #f44336; background: transparent; }
-
-.xvm-tooltip {
-  display: none;
-  position: fixed;
-  z-index: 2147483647;
-  background: rgb(15, 20, 26);
-  color: rgb(231, 233, 234);
-  font-size: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  white-space: pre-line;
-  line-height: 1.6;
-  min-width: 160px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-}
-
-.xvm-lb {
-  display: none;
-  position: fixed;
-  right: 16px;
-  top: 72px;
-  width: 280px;
-  background: #fffcf6;
-  color: #24180f;
-  border: 1px solid rgba(86, 60, 34, 0.18);
-  border-radius: 14px;
-  font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
-  box-shadow: 0 10px 28px rgba(36, 24, 15, 0.22), 0 2px 6px rgba(36, 24, 15, 0.08);
-  z-index: 2147483646;
-  overflow: hidden;
-}
-.xvm-lb.xvm-lb-dragging {
-  box-shadow: 0 16px 36px rgba(36, 24, 15, 0.32), 0 2px 6px rgba(36, 24, 15, 0.12);
-  opacity: 0.96;
-}
-.xvm-lb.xvm-lb-resizing {
-  box-shadow: 0 16px 36px rgba(36, 24, 15, 0.32), 0 2px 6px rgba(36, 24, 15, 0.12);
-}
-
-.xvm-lb-head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 10px 6px;
-  border-bottom: 1px solid rgba(86, 60, 34, 0.14);
-  background: linear-gradient(180deg, rgba(191, 90, 42, 0.06), rgba(191, 90, 42, 0));
-  cursor: grab;
-  user-select: none;
-}
-.xvm-lb-head:active,
-.xvm-lb.xvm-lb-dragging .xvm-lb-head { cursor: grabbing; }
-.xvm-lb-grip {
-  font-size: 10px;
-  color: #9b877a;
-  letter-spacing: -1px;
-}
-.xvm-lb-title {
-  flex: 1;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
   font-size: 11px;
-  font-weight: 700;
-  color: #6e5b4d;
-  letter-spacing: 0.02em;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
 }
-.xvm-lb-back {
+
+.xvm-badge:hover {
+  transform: translateY(-1px);
+}
+
+.xvm-badge--green {
+  color: #047857;
+  background: rgba(236, 253, 245, 0.94);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.xvm-badge--orange {
+  color: #b45309;
+  background: rgba(255, 251, 235, 0.94);
+  border-color: rgba(245, 158, 11, 0.32);
+}
+
+.xvm-badge--red {
+  color: #be123c;
+  background: rgba(255, 241, 242, 0.96);
+  border-color: rgba(244, 63, 94, 0.34);
+}
+
+html[data-xvm-badge-style="inline-classic"] .xvm-badge {
+  position: absolute;
+  height: auto;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: none;
+  font-size: 11px;
+}
+
+.xvm-copy-md-button {
+  position: absolute;
+  top: 38px;
+  right: 8px;
+  z-index: 50;
+  width: 26px;
+  height: 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: #bf5a2a;
+  border: 1px solid rgba(203, 213, 225, 0.78);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #475569;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
 }
-.xvm-lb-back:hover {
-  background: rgba(191, 90, 42, 0.14);
-  color: #8f3d17;
+
+.xvm-copy-md-button:hover {
+  color: #e11d48;
+  border-color: rgba(225, 29, 72, 0.45);
+  transform: translateY(-1px);
 }
-.xvm-lb-back[hidden] { display: none; }
+
+.xvm-copy-md-button svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+.xvm-lb {
+  position: fixed;
+  top: 96px;
+  right: 24px;
+  z-index: 2147483000;
+  width: 304px;
+  max-width: calc(100vw - 24px);
+  max-height: min(520px, calc(100vh - 32px));
+  overflow: hidden;
+  border: 1px solid rgba(216, 222, 232, 0.9);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #111827;
+  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.xvm-lb[data-theme="dark"] {
+  border-color: rgba(71, 85, 105, 0.9);
+  background: rgba(17, 24, 39, 0.96);
+  color: #f8fafc;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.36);
+}
+
+.xvm-lb-head {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(216, 222, 232, 0.8);
+  cursor: grab;
+  user-select: none;
+}
+
+.xvm-lb[data-theme="dark"] .xvm-lb-head {
+  border-bottom-color: rgba(71, 85, 105, 0.8);
+}
+
+.xvm-lb-dragging .xvm-lb-head {
+  cursor: grabbing;
+}
+
+.xvm-lb-grip {
+  width: 12px;
+  height: 16px;
+  opacity: 0.55;
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+.xvm-lb-title {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 800;
+}
 
 .xvm-lb-list {
   list-style: none;
+  padding: 4px;
   margin: 0;
-  padding: 2px 0;
-  height: 300px;
-  min-height: 120px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-.xvm-lb-list::-webkit-scrollbar { width: 5px; }
-.xvm-lb-list::-webkit-scrollbar-thumb {
-  background: rgba(86, 60, 34, 0.2);
-  border-radius: 2px;
-}
-.xvm-lb-resize {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 12px;
-  height: 100%;
-  cursor: ew-resize;
-}
-.xvm-lb-resize::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 3px;
-  width: 3px;
-  height: 28px;
-  border-radius: 999px;
-  background: rgba(110, 91, 77, 0.22);
-  transform: translateY(-50%);
-  transition: background 0.12s;
-}
-.xvm-lb:hover .xvm-lb-resize::before,
-.xvm-lb.xvm-lb-resizing .xvm-lb-resize::before {
-  background: rgba(191, 90, 42, 0.35);
+  max-height: 460px;
+  overflow: auto;
 }
 
-.xvm-lb-resize-v {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 12px;
-  cursor: ns-resize;
-}
-.xvm-lb-resize-v::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 3px;
-  width: 28px;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(110, 91, 77, 0.22);
-  transform: translateX(-50%);
-  transition: background 0.12s;
-}
-.xvm-lb:hover .xvm-lb-resize-v::before,
-.xvm-lb.xvm-lb-resizing .xvm-lb-resize-v::before {
-  background: rgba(191, 90, 42, 0.35);
+.xvm-lb-item,
+.xvm-lb-empty {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: inherit;
+  font-size: 12px;
 }
 
 .xvm-lb-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;     /* P1 polish: tighter row padding */
-  font-size: 12px;
   cursor: pointer;
-  height: 24px;          /* P1 polish: 28 → 24, denser list */
-  user-select: none;
-  transition: background 0.12s;
 }
-.xvm-lb-item:hover { background: rgba(191, 90, 42, 0.10); }
-.xvm-lb-rank {
-  width: 14px;
+
+.xvm-lb-item:hover {
+  background: rgba(225, 29, 72, 0.08);
+}
+
+.xvm-lb-empty {
+  display: block;
+  color: #64748b;
   text-align: center;
-  color: #9b877a;
-  font-variant-numeric: tabular-nums;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 18px 10px;
 }
-.xvm-lb-icon { flex-shrink: 0; }
-.xvm-lb-handle {
-  /* flex-shrink:0 so the handle is allowed to show in full and it's
-     the preview column that gets truncated first when they coexist. */
-  flex: 0 0 auto;
-  max-width: 180px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #24180f;
-  font-weight: 500;
+
+.xvm-lb-rank {
+  min-width: 18px;
+  color: #94a3b8;
+  font-weight: 750;
 }
-.xvm-lb-preview {
-  flex: 1 1 0;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #3a2b1f;
-  font-size: 11.5px;
-}
-.xvm-lb-views {
-  font-variant-numeric: tabular-nums;
+
+.xvm-lb-icon {
+  width: 34px;
+  color: #64748b;
   font-size: 10px;
-  color: #6e5b4d;
-  flex-shrink: 0;
+  font-weight: 850;
 }
-.xvm-lb-vel {
+
+.xvm-lb-author {
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #64748b;
+}
+
+.xvm-lb-preview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 650;
+}
+
+.xvm-lb-heat,
+.xvm-lb-velocity {
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-.xvm-lb-green .xvm-lb-vel { color: #3b8a3f; }
-.xvm-lb-orange .xvm-lb-vel { color: #bf5a2a; }
-.xvm-lb-red .xvm-lb-vel { color: #c23c1c; }
-
-.xvm-lb-item-selected {
-  background: rgba(191, 90, 42, 0.14);
-  box-shadow: inset 0 0 0 1.5px #bf5a2a;
-  border-radius: 6px;
-}
-.xvm-lb-item-selected:hover { background: rgba(191, 90, 42, 0.18); }
-
-article[data-testid="tweet"].xvm-article-linked {
-  outline: 2px solid #bf5a2a;
-  outline-offset: -1px;
-  border-radius: 12px;
-  transition: outline-color 0.18s;
+  color: #64748b;
+  white-space: nowrap;
 }
 
-.xvm-lb-link-path {
-  stroke: #bf5a2a;
-  stroke-width: 2;
-  stroke-linecap: round;
-  filter: drop-shadow(0 2px 4px rgba(191, 90, 42, 0.35));
-}
-.xvm-lb-link-dot {
-  fill: #fff8f1;
-  stroke: #bf5a2a;
-  stroke-width: 2;
-  filter: drop-shadow(0 1px 3px rgba(191, 90, 42, 0.4));
-}
-.xvm-lb-link-start { animation: xvm-lb-pulse 1.8s ease-in-out infinite; }
-@keyframes xvm-lb-pulse {
-  0%, 100% { r: 5; }
-  50% { r: 7; }
+.xvm-lb-red .xvm-lb-velocity,
+.xvm-lb-red .xvm-lb-icon {
+  color: #e11d48;
 }
 
+.xvm-lb-orange .xvm-lb-velocity,
+.xvm-lb-orange .xvm-lb-icon {
+  color: #b45309;
+}
 
-/* === Toast for Copy-as-Markdown === */
+.xvm-lb-green .xvm-lb-velocity,
+.xvm-lb-green .xvm-lb-icon {
+  color: #047857;
+}
+
+.xvm-note-focus {
+  outline: 2px solid rgba(225, 29, 72, 0.72) !important;
+  outline-offset: 3px !important;
+  border-radius: 10px;
+  transition: outline-color 180ms;
+}
+
 .xvm-toast {
   position: fixed;
   left: 50%;
-  bottom: 32px;
-  transform: translate(-50%, 12px);
-  background: rgba(15, 20, 25, 0.92);
-  color: #fff;
-  font-size: 14px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  padding: 10px 16px;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  bottom: 28px;
+  z-index: 2147483647;
+  max-width: min(520px, calc(100vw - 24px));
+  transform: translate(-50%, 10px);
   opacity: 0;
-  transition: opacity 180ms ease, transform 180ms ease;
-  z-index: 2147483646;
+  padding: 10px 12px;
+  border: 1px solid rgba(216, 222, 232, 0.9);
+  border-radius: 8px;
+  background: rgba(17, 24, 39, 0.95);
+  color: #fff;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.24);
+  white-space: pre-line;
+  font-size: 12px;
+  line-height: 1.45;
   pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms ease;
 }
-.xvm-toast--top {
-  top: 24px;
-  bottom: auto;
-  transform: translate(-50%, -12px);
-}
-.xvm-toast--success {
-  background: rgba(22, 163, 74, 0.96);
-  color: #fff;
-  border: 1.5px solid rgba(134, 239, 172, 0.5);
-  font-weight: 600;
-  font-size: 15px;
-  padding: 12px 20px;
-  box-shadow: 0 10px 30px rgba(22, 101, 52, 0.42), 0 0 0 1px rgba(34, 197, 94, 0.3);
-}
-.xvm-toast--error {
-  background: rgba(185, 28, 28, 0.96);
-  color: #fff;
-  border: 1.5px solid rgba(252, 165, 165, 0.5);
-  font-weight: 600;
-  font-size: 15px;
-  padding: 12px 20px;
-  box-shadow: 0 10px 30px rgba(127, 29, 29, 0.5), 0 0 0 1px rgba(239, 68, 68, 0.3);
-}
-.xvm-toast--sticky {
-  cursor: pointer;
-  pointer-events: auto;
-}
+
 .xvm-toast--show {
   opacity: 1;
   transform: translate(-50%, 0);
 }
-@media (prefers-color-scheme: dark) {
-  .xvm-toast:not(.xvm-toast--error):not(.xvm-toast--success) {
-    background: rgba(255, 255, 255, 0.95);
-    color: #0f1419;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+.xvm-toast--success {
+  background: rgba(15, 118, 110, 0.96);
+}
+
+.xvm-toast--error {
+  background: rgba(185, 28, 28, 0.96);
+}
+
+@media (max-width: 640px) {
+  .xvm-lb {
+    left: 12px;
+    right: 12px;
+    top: 72px;
+    width: auto;
   }
 }
-
-.xvm-copy-md-source {
-  display: block;
-  margin-top: 1px;
-  font-size: 11px;
-  font-weight: 400;
-  color: rgb(113, 118, 123);
-  opacity: 0.85;
-  letter-spacing: 0.01em;
-}
-
-/* === Star Chart overlay — verbatim port of London-Chen/Thank-you-star-chart (MIT) ===
- *
- * Class-name mapping (original selector → our .xvm-sc-* class):
- *   :root vars              → .xvm-starchart-overlay vars (--sc-*)
- *   body / .shell           → .xvm-starchart-overlay / .xvm-sc-frame
- *   .topbar                 → .xvm-sc-header
- *   .brand                  → .xvm-sc-header-info
- *   .kicker / .eyebrow      → .xvm-sc-title-label
- *   h1                      → .xvm-sc-title
- *   .controls               → .xvm-sc-header-actions
- *   button (generic)        → .xvm-sc-reset / .xvm-sc-close
- *   .left-panel             → .xvm-sc-side-left
- *   .stats-grid             → .xvm-sc-stats-grid
- *   .stats-grid div         → .xvm-sc-stat-block
- *   .stats-grid span        → .xvm-sc-stat-num
- *   .stats-grid p           → .xvm-sc-stat-label
- *   .legend                 → .xvm-sc-legend
- *   .dot / .dot.retweet / .dot.quote / .dot.both
- *                           → .xvm-sc-dot / .xvm-sc-dot--rt / --qt / --both
- *   .quote-panel            → .xvm-sc-side-right (container)
- *   .quote-heading          → .xvm-sc-river-header-row
- *   .quote-heading button   → .xvm-sc-river-btn
- *   blockquote              → .xvm-sc-river-text
- *   #quoteAuthor            → .xvm-sc-river-author
- *   #quoteTime              → .xvm-sc-river-ts
- *   .bottom-panel           → .xvm-sc-bottom
- *   .search-row             → .xvm-sc-bottom-search-row
- *   #searchInput            → .xvm-sc-search
- *   .segments               → .xvm-sc-chips
- *   .segments button        → .xvm-sc-chip
- *   .segments button.active → .xvm-sc-chip--active
- *   .people-list            → .xvm-sc-people-grid
- *   .person                 → .xvm-sc-people-card
- *   .person img / .avatar-fallback → .xvm-sc-avatar / .xvm-sc-avatar-img
- *   .person strong          → .xvm-sc-person-name
- *   .people-meta            → .xvm-sc-person-handle
- *
- * Skipped (features not in our extension):
- *   .library-control, .file-control, .extract-form, #extractStatus
- *   .toast (we use .xvm-toast instead)
- *   media queries (overlay always fills window)
- *   #starfield canvas (our canvas is .xvm-sc-canvas)
- */
-
-/* ---- Color tokens (original :root block, scoped to overlay root) ---- */
-.xvm-starchart-overlay {
-  color-scheme: dark;
-  --sc-text:       #fff7e8;
-  --sc-muted:      rgba(255, 247, 232, 0.68);
-  --sc-panel:      rgba(13, 16, 24, 0.62);
-  --sc-panel-strong: rgba(13, 16, 24, 0.78);
-  --sc-line:       rgba(255, 247, 232, 0.16);
-  --sc-gold:       #ffd56f;
-  --sc-rose:       #ff6f91;
-  --sc-cyan:       #64d7ff;
-  --sc-green:      #70e3a2;
-  /* derived aliases used in our DOM-specific rules below */
-  --sc-bg:         #03050b;
-  --sc-border:     rgba(255, 247, 232, 0.16);
-  --sc-border-s:   rgba(255, 247, 232, 0.10);
-  --sc-text-muted: rgba(255, 247, 232, 0.68);
-  --sc-text-dim:   rgba(255, 247, 232, 0.45);
-  --sc-bg-panel:   rgba(13, 16, 24, 0.62);
-  --sc-bg-card:    rgba(13, 16, 24, 0.78);
-  /* Layout dimensions */
-  --sc-col-left:   280px;
-  --sc-col-right:  340px;
-  --sc-bottom-h:   220px;
-
-  position: fixed;
-  inset: 0;
-  z-index: 2147483647;
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  color: var(--sc-text);
-}
-
-/* box-sizing reset inside overlay only */
-.xvm-starchart-overlay *,
-.xvm-starchart-overlay *::before,
-.xvm-starchart-overlay *::after {
-  box-sizing: border-box;
-}
-
-/* button + input font inherit (original: button, input { font: inherit }) */
-.xvm-starchart-overlay button,
-.xvm-starchart-overlay input {
-  font: inherit;
-}
-
-/* ---- Backdrop (our custom; not in original which uses a fixed <canvas>) ---- */
-.xvm-starchart-overlay .xvm-sc-backdrop {
-  position: absolute;
-  inset: 0;
-  background: #03050b;
-}
-
-/* ---- Frame = original .shell + panel chrome ---- */
-/* Original panels share: border, background, backdrop-filter, box-shadow */
-.xvm-starchart-overlay .xvm-sc-frame {
-  position: absolute;
-  inset: 20px;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--sc-line);
-  background: var(--sc-panel);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.32);
-}
-
-/* ---- Header = original .topbar ---- */
-.xvm-starchart-overlay .xvm-sc-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  min-height: 76px;
-  padding: 14px 18px;
-  border-radius: 8px 8px 0 0;
-  border-bottom: 1px solid var(--sc-line);
-  flex-shrink: 0;
-}
-
-/* brand = original .brand */
-.xvm-starchart-overlay .xvm-sc-header-info {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  min-width: 0;
-}
-
-/* eyebrow / kicker label */
-.xvm-starchart-overlay .xvm-sc-title-label {
-  color: var(--sc-gold);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-/* h1 = article title */
-.xvm-starchart-overlay .xvm-sc-title {
-  font-size: clamp(18px, 2.5vw, 32px);
-  font-weight: 700;
-  line-height: 1;
-  margin: 0;
-  color: var(--sc-text);
-}
-
-/* subtitle */
-.xvm-starchart-overlay .xvm-sc-subtitle {
-  font-size: 13px;
-  color: var(--sc-muted);
-  line-height: 1.35;
-  max-width: 520px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: 0;
-}
-
-/* controls = original .controls */
-.xvm-starchart-overlay .xvm-sc-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-/* progress label */
-.xvm-starchart-overlay .xvm-sc-progress {
-  font-size: 13px;
-  color: var(--sc-muted);
-  white-space: nowrap;
-}
-
-/* shared button chrome (original: .controls button, .segments button, .quote-heading button) */
-.xvm-starchart-overlay .xvm-sc-reset,
-.xvm-starchart-overlay .xvm-sc-close,
-.xvm-starchart-overlay .xvm-sc-river-btn,
-.xvm-starchart-overlay .xvm-sc-chip {
-  min-height: 38px;
-  border: 1px solid rgba(255, 247, 232, 0.18);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--sc-text);
-  cursor: pointer;
-}
-
-/* Reset button overrides */
-.xvm-starchart-overlay .xvm-sc-reset {
-  padding: 0 14px;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.xvm-starchart-overlay .xvm-sc-reset:hover {
-  background: rgba(255, 213, 111, 0.18);
-  border-color: rgba(255, 213, 111, 0.4);
-  color: var(--sc-gold);
-}
-
-/* Close button overrides */
-.xvm-starchart-overlay .xvm-sc-close {
-  padding: 0 14px;
-  font-size: 22px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.xvm-starchart-overlay .xvm-sc-close:hover {
-  background: rgba(255, 111, 145, 0.18);
-  border-color: rgba(255, 111, 145, 0.4);
-  color: var(--sc-rose);
-}
-
-/* ---- Body: 3-region grid + bottom strip (our overlay layout — kept as-is) ---- */
-.xvm-starchart-overlay .xvm-sc-body {
-  display: grid;
-  grid-template-columns: var(--sc-col-left) 1fr var(--sc-col-right);
-  grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "left stage right"
-    "bottom bottom bottom";
-  gap: 0;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  overflow: hidden;
-}
-
-/* ---- LEFT panel = original .left-panel ---- */
-.xvm-starchart-overlay .xvm-sc-side-left {
-  grid-area: left;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--sc-line);
-  background: var(--sc-panel);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.32);
-  padding: 22px;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* ---- CENTER stage (canvas) ---- */
-.xvm-starchart-overlay .xvm-sc-stage {
-  grid-area: stage;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  background: var(--sc-bg);
-}
-
-.xvm-starchart-overlay .xvm-sc-canvas {
-  flex: 1 1 auto;
-  width: 100%;
-  display: block;
-  min-height: 0;
-}
-
-.xvm-starchart-overlay .xvm-sc-stage-status {
-  flex-shrink: 0;
-  height: 0;
-}
-
-/* Empty state */
-.xvm-starchart-overlay .xvm-sc-empty {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: var(--sc-muted);
-  font-size: 14px;
-  text-align: center;
-  pointer-events: none;
-  padding: 24px;
-}
-
-.xvm-starchart-overlay .xvm-sc-empty--hidden {
-  display: none;
-}
-
-.xvm-starchart-overlay .xvm-sc-empty-icon {
-  font-size: 40px;
-  opacity: 0.35;
-  line-height: 1;
-  color: var(--sc-gold);
-}
-
-/* ---- RIGHT panel = original .quote-panel ---- */
-.xvm-starchart-overlay .xvm-sc-side-right {
-  grid-area: right;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--sc-line);
-  background: linear-gradient(135deg, rgba(18, 22, 33, 0.82), rgba(47, 26, 42, 0.72));
-  backdrop-filter: blur(18px);
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.32);
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* ---- BOTTOM panel = original .bottom-panel ---- */
-.xvm-starchart-overlay .xvm-sc-bottom {
-  grid-area: bottom;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  height: var(--sc-bottom-h);
-  padding: 14px;
-  border-top: 1px solid var(--sc-line);
-  border-radius: 0 0 8px 8px;
-  background: var(--sc-panel-strong);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.32);
-  flex-shrink: 0;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-/* search row = original .search-row */
-.xvm-starchart-overlay .xvm-sc-bottom-search-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-/* Shared section header (our addition for panel labels) */
-.xvm-starchart-overlay .xvm-sc-section-header {
-  padding: 9px 14px 7px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  color: var(--sc-muted);
-  border-bottom: 1px solid var(--sc-line);
-  flex-shrink: 0;
-}
-
-.xvm-starchart-overlay .xvm-sc-section-header--river {
-  color: var(--sc-cyan);
-  border-bottom: none;
-  padding: 0;
-}
-
-/* ---- Hero block (top of left column) ---- */
-/* Bleed outward to the panel edges so the bottom rule spans the
-   full panel width, then restore inner padding. The parent
-   .xvm-sc-side-left has padding: 22px. */
-.xvm-starchart-overlay .xvm-sc-hero {
-  margin: -22px -22px 14px;
-  padding: 22px 22px 16px;
-  border-bottom: 1px solid var(--sc-line);
-  flex-shrink: 0;
-}
-
-/* @handle in supporter card becomes a real link — keep the muted
-   underline-on-hover affordance without breaking the surrounding card layout. */
-.xvm-starchart-overlay a.xvm-sc-person-handle {
-  text-decoration: none;
-  cursor: pointer;
-}
-.xvm-starchart-overlay a.xvm-sc-person-handle:hover {
-  text-decoration: underline;
-  color: var(--sc-gold);
-}
-.xvm-starchart-overlay .xvm-sc-hero-eyebrow {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--sc-gold);
-  opacity: 0.78;
-  margin-bottom: 10px;
-  line-height: 1.4;
-}
-.xvm-starchart-overlay .xvm-sc-hero-title {
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.42;
-  color: var(--sc-text);
-  letter-spacing: 0.01em;
-}
-
-/* ---- Stats card = original .stats-grid + its children ---- */
-.xvm-starchart-overlay .xvm-sc-stats-card {
-  flex-shrink: 0;
-}
-
-.xvm-starchart-overlay .xvm-sc-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 24px;
-}
-
-/* .stats-grid div */
-.xvm-starchart-overlay .xvm-sc-stat-block {
-  min-height: 84px;
-  padding: 12px;
-  border: 1px solid var(--sc-line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-/* .stats-grid span */
-.xvm-starchart-overlay .xvm-sc-stat-num {
-  display: block;
-  font-size: 30px;
-  font-weight: 800;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--sc-text);
-}
-
-/* color variants for stat numbers */
-.xvm-starchart-overlay .xvm-sc-stat-block--gold .xvm-sc-stat-num { color: var(--sc-gold); }
-.xvm-starchart-overlay .xvm-sc-stat-block--cyan .xvm-sc-stat-num { color: var(--sc-cyan); }
-.xvm-starchart-overlay .xvm-sc-stat-block--rose .xvm-sc-stat-num { color: var(--sc-rose); }
-.xvm-starchart-overlay .xvm-sc-stat-block--muted .xvm-sc-stat-num {
-  font-size: 20px;
-  color: var(--sc-muted);
-  font-weight: 600;
-}
-
-/* .stats-grid p */
-.xvm-starchart-overlay .xvm-sc-stat-label {
-  color: var(--sc-muted);
-  font-size: 13px;
-  margin: 0;
-}
-
-/* ---- Legend = original .legend + .dot ---- */
-.xvm-starchart-overlay .xvm-sc-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 18px;
-  color: var(--sc-muted);
-  font-size: 13px;
-}
-
-.xvm-starchart-overlay .xvm-sc-legend-item {
-  display: flex;
-  align-items: center;
-}
-
-/* .dot */
-.xvm-starchart-overlay .xvm-sc-dot {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-right: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* .dot.retweet */
-.xvm-starchart-overlay .xvm-sc-dot--rt {
-  background: var(--sc-gold);
-}
-
-/* .dot.quote */
-.xvm-starchart-overlay .xvm-sc-dot--qt {
-  background: var(--sc-cyan);
-}
-
-/* .dot.both */
-.xvm-starchart-overlay .xvm-sc-dot--both {
-  background: var(--sc-rose);
-}
-
-.xvm-starchart-overlay .xvm-sc-legend-text {
-  /* text is a bare text node in legend-item, no extra class needed */
-}
-
-/* ---- Filter chips = original .segments + button ---- */
-.xvm-starchart-overlay .xvm-sc-chips {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-/* .segments button — base chrome already set above in shared button rule */
-.xvm-starchart-overlay .xvm-sc-chip {
-  padding: 0 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1;
-  color: var(--sc-text);
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-}
-
-.xvm-starchart-overlay .xvm-sc-chip:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-/* .segments button.active */
-.xvm-starchart-overlay .xvm-sc-chip--active,
-.xvm-starchart-overlay .xvm-sc-chip--all.xvm-sc-chip--active {
-  border-color: rgba(255, 213, 111, 0.7);
-  background: rgba(255, 213, 111, 0.18);
-  color: var(--sc-gold);
-}
-
-.xvm-starchart-overlay .xvm-sc-chip--rt.xvm-sc-chip--active {
-  border-color: rgba(255, 213, 111, 0.7);
-  background: rgba(255, 213, 111, 0.18);
-  color: var(--sc-gold);
-}
-
-.xvm-starchart-overlay .xvm-sc-chip--qt.xvm-sc-chip--active {
-  border-color: rgba(100, 215, 255, 0.5);
-  background: rgba(100, 215, 255, 0.18);
-  color: var(--sc-cyan);
-}
-
-.xvm-starchart-overlay .xvm-sc-chip--both.xvm-sc-chip--active {
-  border-color: rgba(255, 111, 145, 0.5);
-  background: rgba(255, 111, 145, 0.18);
-  color: var(--sc-rose);
-}
-
-/* ---- Search input = original #searchInput ---- */
-.xvm-starchart-overlay .xvm-sc-search-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.xvm-starchart-overlay .xvm-sc-search-icon {
-  position: absolute;
-  left: 9px;
-  font-size: 11px;
-  pointer-events: none;
-  opacity: 0.45;
-  color: var(--sc-text);
-}
-
-/* #searchInput */
-.xvm-starchart-overlay .xvm-sc-search {
-  min-height: 42px;
-  width: 100%;
-  border: 1px solid var(--sc-line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.09);
-  color: var(--sc-text);
-  padding: 0 14px 0 32px;
-  outline: none;
-  font-size: 13px;
-}
-
-.xvm-starchart-overlay .xvm-sc-search::placeholder {
-  color: var(--sc-muted);
-}
-
-.xvm-starchart-overlay .xvm-sc-search:focus {
-  border-color: rgba(100, 215, 255, 0.38);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-/* ---- People grid = original .people-list ---- */
-.xvm-starchart-overlay .xvm-sc-people-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: min-content;
-  gap: 10px;
-  margin-top: 12px;
-  overflow-y: auto;
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-/* Unified scrollbar styling across all scrollable areas in the overlay */
-.xvm-starchart-overlay *::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-.xvm-starchart-overlay *::-webkit-scrollbar-track {
-  background: rgba(255, 247, 232, 0.04);
-  border-radius: 3px;
-}
-.xvm-starchart-overlay *::-webkit-scrollbar-thumb {
-  background: rgba(255, 247, 232, 0.18);
-  border-radius: 3px;
-  transition: background 0.15s;
-}
-.xvm-starchart-overlay *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 213, 111, 0.45);
-}
-.xvm-starchart-overlay *::-webkit-scrollbar-corner {
-  background: transparent;
-}
-/* Firefox */
-.xvm-starchart-overlay * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 247, 232, 0.18) transparent;
-}
-
-/* People card = original .person */
-.xvm-starchart-overlay .xvm-sc-people-card {
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  min-height: 58px;
-  padding: 8px;
-  border: 1px solid rgba(255, 247, 232, 0.12);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
-}
-
-.xvm-starchart-overlay .xvm-sc-people-card:hover {
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(255, 247, 232, 0.22);
-}
-
-/* Avatar = original .person img + .avatar-fallback */
-.xvm-starchart-overlay .xvm-sc-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: linear-gradient(135deg, var(--sc-gold), var(--sc-cyan), var(--sc-rose));
-  display: grid;
-  place-items: center;
-  color: #111;
-  font-weight: 900;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.xvm-starchart-overlay .xvm-sc-avatar-img {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: block;
-  object-fit: cover;
-}
-
-/* person info = original .person strong + .people-meta */
-.xvm-starchart-overlay .xvm-sc-person-info {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* .person strong */
-.xvm-starchart-overlay .xvm-sc-person-name {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--sc-text);
-}
-
-/* .people-meta */
-.xvm-starchart-overlay .xvm-sc-person-handle {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--sc-muted);
-  font-size: 13px;
-}
-
-/* ---- Quote River = original .quote-panel + blockquote ---- */
-.xvm-starchart-overlay .xvm-sc-river {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  padding: 20px;
-}
-
-/* .quote-heading */
-.xvm-starchart-overlay .xvm-sc-river-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-}
-
-.xvm-starchart-overlay .xvm-sc-river-title {
-  color: var(--sc-gold);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-/* river nav buttons container = .quote-heading div */
-.xvm-starchart-overlay .xvm-sc-river-nav {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-/* .quote-heading button — base chrome set in shared button rule above */
-.xvm-starchart-overlay .xvm-sc-river-btn {
-  width: 36px;
-  padding: 0;
-  font-size: 24px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-}
-
-.xvm-starchart-overlay .xvm-sc-river-btn:hover {
-  background: rgba(100, 215, 255, 0.15);
-  border-color: rgba(100, 215, 255, 0.4);
-  color: var(--sc-cyan);
-}
-
-.xvm-starchart-overlay .xvm-sc-river-counter {
-  font-size: 10px;
-  color: var(--sc-muted);
-  font-variant-numeric: tabular-nums;
-  padding: 0 2px;
-}
-
-/* river content area */
-.xvm-starchart-overlay .xvm-sc-river-content {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* blockquote */
-.xvm-starchart-overlay .xvm-sc-river-text {
-  margin: 18px 0 14px;
-  max-height: 230px;
-  overflow: auto;
-  color: #fffdf6;
-  font-size: 20px;
-  line-height: 1.5;
-  flex: 1 1 auto;
-}
-
-/* #quoteAuthor */
-.xvm-starchart-overlay .xvm-sc-river-author {
-  color: var(--sc-gold);
-  font-weight: 800;
-  text-decoration: none;
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.xvm-starchart-overlay .xvm-sc-river-author:hover {
-  text-decoration: underline;
-}
-
-/* #quoteTime */
-.xvm-starchart-overlay .xvm-sc-river-ts {
-  margin-top: 8px;
-  color: var(--sc-muted);
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.xvm-starchart-overlay .xvm-sc-river-empty {
-  font-size: 13px;
-  color: var(--sc-muted);
-  font-style: italic;
-  text-align: center;
-  padding: 20px 0;
-}
-
-/* === Grok reply generation === */
-.xvm-grok-generate-btn {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 0;
-  height: 32px;
-  margin: 0 8px 0 0;
-  padding: 0 10px;
-  border: 1px solid rgba(207, 217, 222, 0.92);
-  border-radius: 8px;
-  background: rgb(255, 255, 255);
-  color: rgb(15, 20, 25);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(15, 20, 25, 0.06);
-  transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
-}
-
-.xvm-grok-generate-btn:hover {
-  border-color: rgba(83, 100, 113, 0.35);
-  background: rgb(247, 249, 249);
-  box-shadow: 0 1px 3px rgba(15, 20, 25, 0.1);
-}
-
-.xvm-grok-generate-btn:disabled {
-  opacity: 0.62;
-  cursor: wait;
-}
-
-.xvm-grok-spark {
-  color: rgb(29, 155, 240);
-  font-size: 12px;
-  line-height: 1;
-}
-
-.xvm-grok-generate-btn--loading .xvm-grok-spark {
-  animation: xvm-grok-pulse 0.9s ease-in-out infinite alternate;
-}
-
-.xvm-grok-actions-host {
-  gap: 8px;
-}
-
-@keyframes xvm-grok-pulse {
-  from { opacity: 0.45; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.xvm-grok-options {
-  position: fixed;
-  /* left/top set in JS to anchor against the AI button */
-  z-index: 2147483647;
-  /* width set in JS based on viewport; capped sensibly */
-  max-height: min(560px, calc(100vh - 36px));
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  color: rgb(15, 20, 25);
-  background: rgba(255, 255, 255, 0.99);
-  border: 1px solid rgba(207, 217, 222, 0.9);
-  border-radius: 12px;
-  font-family: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  animation: xvm-grok-pop 140ms ease-out;
-  transform-origin: bottom right;
-}
-
-.xvm-grok-options.xvm-grok-options--below {
-  transform-origin: top right;
-}
-
-.xvm-grok-options.xvm-grok-options--right {
-  transform-origin: center left;
-}
-
-.xvm-grok-options.xvm-grok-options--left {
-  transform-origin: center right;
-}
-
-@keyframes xvm-grok-pop {
-  from { opacity: 0; transform: scale(0.96) translateY(4px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.xvm-grok-template-menu {
-  position: fixed;
-  z-index: 2147483647;
-  overflow: hidden;
-  color: rgb(15, 20, 25);
-  background: rgba(255, 255, 255, 0.99);
-  border: 1px solid rgba(207, 217, 222, 0.95);
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(15, 20, 25, 0.18);
-  font-family: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.xvm-grok-template-menu-head {
-  padding: 10px 12px 6px;
-  color: rgb(83, 100, 113);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.xvm-grok-template-menu-list {
-  display: flex;
-  flex-direction: column;
-  padding: 4px;
-}
-
-.xvm-grok-template-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: 100%;
-  padding: 9px 10px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: rgb(15, 20, 25);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.xvm-grok-template-item:hover {
-  background: rgb(247, 249, 249);
-}
-
-.xvm-grok-template-item span {
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.xvm-grok-template-item small {
-  overflow: hidden;
-  color: rgb(83, 100, 113);
-  font-size: 12px;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.xvm-grok-options-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(239, 243, 244, 1);
-  font-size: 15px;
-}
-
-.xvm-grok-options-status {
-  font-size: 12px;
-  color: rgb(83, 100, 113);
-  flex: 1;
-  text-align: right;
-  margin-right: 4px;
-}
-
-.xvm-grok-template-item--selected {
-  outline: 1px solid rgba(29, 155, 240, 0.4);
-  background: rgba(29, 155, 240, 0.06);
-}
-
-.xvm-grok-close {
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgb(83, 100, 113);
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.xvm-grok-close:hover {
-  background: rgba(15, 20, 25, 0.08);
-}
-
-.xvm-grok-options-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  overflow: auto;
-}
-
-.xvm-grok-choice {
-  position: relative;
-  width: 100%;
-  padding: 10px 12px 10px 34px;
-  border: 1px solid rgba(207, 217, 222, 0.85);
-  border-radius: 8px;
-  background: #fff;
-  color: rgb(15, 20, 25);
-  font: inherit;
-  font-size: 14px;
-  line-height: 1.45;
-  text-align: left;
-  cursor: pointer;
-  white-space: pre-wrap;
-}
-
-.xvm-grok-choice::before {
-  content: attr(data-idx);
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background: rgba(29, 155, 240, 0.12);
-  color: rgb(29, 155, 240);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 18px;
-  text-align: center;
-}
-
-.xvm-grok-choice:hover {
-  border-color: rgba(29, 155, 240, 0.45);
-  background: rgba(29, 155, 240, 0.06);
-}
-
-/* === Enhanced Image Viewer === */
-.xvm-iv-indicator {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(8px);
-  background: rgba(0, 0, 0, 0.72);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  padding: 6px 14px;
-  border-radius: 20px;
-  opacity: 0;
-  transition: opacity 200ms ease, transform 200ms ease;
-  pointer-events: none;
-  backdrop-filter: blur(8px);
-  letter-spacing: 0.02em;
-  z-index: 10;
-}
-.xvm-iv-indicator--show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* === Long Image Viewer === */
-/* Modal-only: tall images (h/w > 2) scroll vertically at a fixed reading
-   width, instead of being squashed by X's flex centering. Coexists with
-   image-viewer.js — that script bails when it sees .xvm-liv-dialog. */
-[role="dialog"].xvm-liv-dialog {
-  overflow: hidden !important;
-}
-
-/* Relax width / aspect-ratio / transform clamps on the ancestor chain so the
-   image can render at its natural size inside the chosen scroller.
-   The `:not()` chain is a defensive backstop: lib/long-image-viewer.js
-   already stops `markAncestors()` at these carousel-boundary nodes, but
-   if JS ever drifts (X DOM change, future regression) the CSS rule by
-   itself still won't touch X's swipe / list / carousel machinery — which
-   is the layer that controls next/prev navigation and off-screen slide
-   positioning. Stripping width/aspect-ratio/transform on those would
-   make the previous slide bleed onto the viewport (#9 v1 bug). */
-[role="dialog"].xvm-liv-dialog
-  .xvm-liv-ancestor:not([role="list"]):not([role="listitem"]):not([role="group"]):not([aria-roledescription="carousel"]):not([data-testid="swipe-to-dismiss"]) {
-  max-width: none !important;
-  width: 100% !important;
-  min-height: 0 !important;
-  aspect-ratio: auto !important;
-  transform: none !important;
-}
-
-/* X re-renders the photo as a background-image on a sibling div sitting
-   behind the <img>. Hide it so we only see the (now visible) <img>. */
-[role="dialog"].xvm-liv-dialog [style*="pbs.twimg.com/media"] {
-  background-image: none !important;
-}
-
-/* Chosen scroll container — only the image area scrolls, replies stay put. */
-[role="dialog"].xvm-liv-dialog .xvm-liv-scroll {
-  max-height: 100vh !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(120, 120, 120, 0.5) transparent;
-}
-[role="dialog"].xvm-liv-dialog .xvm-liv-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-[role="dialog"].xvm-liv-dialog .xvm-liv-scroll::-webkit-scrollbar-thumb {
-  background: rgba(120, 120, 120, 0.5);
-  border-radius: 4px;
-}
-
-/* Reveal X's normally hidden <img> (it sets opacity:0 / z-index:-1) and
-   render it at reading width. */
-img.xvm-liv-img {
-  width: min(900px, 100%) !important;
-  max-width: 100% !important;
-  height: auto !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  flex-shrink: 0 !important;
-  object-fit: contain !important;
-  margin: 24px auto !important;
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  z-index: auto !important;
-  transform: none !important;
-  position: relative !important;
-  inset: auto !important;
-}
-
-/* ============================================================
-   Leaderboard dark-theme overrides (v1.7.0 #2 — leaderboard
-   follows popup theme via .xvm-lb[data-theme="dark"], set by
-   content.js based on chrome.storage.sync.theme + system pref).
-   ============================================================ */
-.xvm-lb[data-theme="dark"] {
-  background: #0f172a;
-  color: #f8fafc;
-  border-color: #334155;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.32);
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-head {
-  background: linear-gradient(180deg, rgba(6, 182, 212, 0.10), rgba(6, 182, 212, 0));
-  border-bottom-color: rgba(148, 163, 184, 0.18);
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-grip,
-.xvm-lb[data-theme="dark"] .xvm-lb-title { color: #f8fafc; }
-.xvm-lb[data-theme="dark"] .xvm-lb-back { color: #cbd5e1; border-color: #334155; }
-.xvm-lb[data-theme="dark"] .xvm-lb-back:hover { color: #f8fafc; border-color: #06b6d4; }
-.xvm-lb[data-theme="dark"] .xvm-lb-resize,
-.xvm-lb[data-theme="dark"] .xvm-lb-resize-v { background: rgba(148, 163, 184, 0.12); }
-.xvm-lb[data-theme="dark"] .xvm-lb-list li { color: #cbd5e1; border-bottom-color: rgba(148, 163, 184, 0.12); }
-/* P1 polish: stronger dark-mode hover feedback + a soft cyan left
-   indicator so the user clearly sees which row is being aimed at */
-.xvm-lb[data-theme="dark"] .xvm-lb-list li:hover {
-  background: rgba(6, 182, 212, 0.16);
-  color: #f8fafc;
-  box-shadow: inset 3px 0 0 #06b6d4;
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-item-selected {
-  background: rgba(6, 182, 212, 0.22);
-  box-shadow: inset 3px 0 0 #22d3ee;
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-red    { color: #f87171; }
-.xvm-lb[data-theme="dark"] .xvm-lb-orange { color: #fb923c; }
-.xvm-lb[data-theme="dark"] .xvm-lb-green  { color: #4ade80; }
-
-/* ============================================================
-   "仅看热帖" Pro-feature in-page toggle (v1.7.0 #4).
-   Visual: compact shadcn pill switch matching the leaderboard type scale
-   tab's enable toggle so users see the same control across both
-   surfaces. State machine is in content.js.
-   ============================================================ */
-.xvm-lb-controls {
-  margin-left: auto;
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.xvm-lb-hot {
-  flex: 0 0 auto;
-  display: inline-flex; align-items: center; gap: 5px;
-  cursor: pointer; user-select: none;
-}
-.xvm-lb-hot-label {
-  font-size: 10.5px; font-weight: 500;
-  color: #6e5b4d;
-  white-space: nowrap;
-}
-.xvm-lb-pro-badge {
-  display: none;
-  padding: 1px 4px;
-  border-radius: 999px;
-  background: rgba(191, 90, 42, 0.14);
-  color: #8a3f1d;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-.xvm-lb-hot[data-tier="free"] .xvm-lb-pro-badge {
-  display: inline-flex;
-}
-.xvm-lb-hot-switch {
-  position: relative; display: inline-block;
-  width: 36px; height: 20px; flex: 0 0 36px;
-}
-.xvm-lb-hot-switch input {
-  opacity: 0; width: 0; height: 0; position: absolute;
-}
-.xvm-lb-hot-slider {
-  position: absolute; inset: 0; cursor: pointer;
-  background: rgba(110, 91, 77, 0.30);     /* slate-600-ish light variant */
-  border-radius: 999px;
-  transition: 200ms;
-}
-.xvm-lb-hot-slider::before {
-  content: ""; position: absolute; top: 2px; left: 2px;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: 200ms;
-}
-.xvm-lb-hot-switch input:checked + .xvm-lb-hot-slider { background: #bf5a2a; }
-.xvm-lb-hot-switch input:checked + .xvm-lb-hot-slider::before { transform: translateX(16px); }
-.xvm-lb-hot-switch input:focus-visible + .xvm-lb-hot-slider {
-  box-shadow: 0 0 0 2px #bf5a2a;
-}
-
-/* Free users: switch reads as 'locked' — still visible but with a
-   subtle dashed outline + slightly muted slider so users sense it's
-   gated. The click handler will show the upgrade bubble. */
-.xvm-lb-hot[data-tier="free"] .xvm-lb-hot-slider {
-  outline: 1px dashed rgba(110, 91, 77, 0.55);
-  outline-offset: 1px;
-}
-.xvm-lb-hot[aria-disabled="true"] {
-  cursor: not-allowed;
-  opacity: 0.68;
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-hot-label { color: #cbd5e1; }
-.xvm-lb[data-theme="dark"] .xvm-lb-pro-badge {
-  background: rgba(6, 182, 212, 0.16);
-  color: #67e8f9;
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-hot-slider { background: #334155; }
-.xvm-lb[data-theme="dark"] .xvm-lb-hot-switch input:checked + .xvm-lb-hot-slider { background: #06b6d4; }
-.xvm-lb[data-theme="dark"] .xvm-lb-hot-switch input:focus-visible + .xvm-lb-hot-slider {
-  box-shadow: 0 0 0 2px #06b6d4;
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-hot[data-tier="free"] .xvm-lb-hot-slider {
-  outline-color: rgba(148, 163, 184, 0.55);
-}
-/* Mini upgrade bubble for free users (rendered below leaderboard head). */
-.xvm-lb-upgrade {
-  margin: 8px 12px 10px;
-  padding: 10px 12px;
-  background: linear-gradient(135deg, rgba(191, 90, 42, 0.10), rgba(191, 90, 42, 0.04));
-  border: 1px solid rgba(191, 90, 42, 0.30);
-  border-radius: 10px;
-  font-size: 11.5px;
-  color: #24180f;
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-upgrade {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.10), rgba(29, 78, 216, 0.06));
-  border-color: rgba(6, 182, 212, 0.35);
-  color: #f8fafc;
-}
-.xvm-lb-upgrade-title { font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
-.xvm-lb-upgrade-actions { display: flex; gap: 6px; margin-top: 6px; }
-.xvm-lb-upgrade-btn, .xvm-lb-upgrade-link {
-  flex: 1; text-align: center;
-  padding: 5px 8px; border-radius: 6px;
-  font-size: 11px; font-weight: 600;
-  cursor: pointer; text-decoration: none;
-  border: 1px solid #bf5a2a; color: #bf5a2a; background: #fffcf6;
-}
-.xvm-lb-upgrade-btn { background: #bf5a2a; color: #fffcf6; }
-.xvm-lb-upgrade-btn:hover { filter: brightness(1.06); }
-.xvm-lb-upgrade-close {
-  background: none; border: none; cursor: pointer; padding: 0 4px;
-  font-size: 14px; color: #6e5b4d; line-height: 1;
-  float: right; margin-top: -2px;
-}
-.xvm-lb[data-theme="dark"] .xvm-lb-upgrade-btn { background: #06b6d4; color: #0b1120; border-color: #06b6d4; }
-.xvm-lb[data-theme="dark"] .xvm-lb-upgrade-link { background: transparent; color: #22d3ee; border-color: #06b6d4; }
-.xvm-lb[data-theme="dark"] .xvm-lb-upgrade-close { color: #94a3b8; }

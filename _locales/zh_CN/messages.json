@@ -1,473 +1,72 @@
 {
-  "extName": {
-    "message": "X 爆款监测"
-  },
-  "extDescription": {
-    "message": "X 推文流速徽章、长图阅读、Markdown 复制、转发星图、Grok 回复辅助 — 全部本地处理，零数据收集。"
-  },
-  "popupSubtitle": {
-    "message": "X 推文的实时曝光流速"
-  },
-  "tierNormal": {
-    "message": "正常"
-  },
-  "tierTrending": {
-    "message": "蹿升"
-  },
-  "tierViral": {
-    "message": "爆款"
-  },
-  "hoverHint": {
-    "message": "悬停徽章查看浏览量、点赞、转发、回复、收藏与爆帖指数。"
-  },
-  "thresholdTrending": {
-    "message": "🚀 蹿升阈值"
-  },
-  "thresholdViral": {
-    "message": "🔥 爆款阈值"
-  },
-  "btnSave": {
-    "message": "保存"
-  },
-  "btnReset": {
-    "message": "重置"
-  },
-  "btnAdd": {
-    "message": "新增"
-  },
-  "btnDelete": {
-    "message": "删除"
-  },
-  "flashSaved": {
-    "message": "已保存 ✓"
-  },
-  "flashReset": {
-    "message": "已重置 ✓"
-  },
-  "featureCopyMdTitle": {
-    "message": "📋 复制推文为 Markdown"
-  },
-  "featureCopyMdDesc": {
-    "message": "在 X 原生分享菜单底部添加“复制为 Markdown”入口，并将推文正文、作者、链接和时间复制为 Markdown 格式。"
-  },
-  "featureLeaderboardTitle": {
-    "message": "📊 流速榜"
-  },
-  "featureLeaderboardDesc": {
-    "message": "可拖拽的浮动面板，显示当前页面里增长最快的推文。点击某一行可滚动到对应推文。"
-  },
-  "featureLeaderboardShowTop": {
-    "message": "显示前"
-  },
-  "featureLeaderboardTweets": {
-    "message": "条推文"
-  },
-  "featureLeaderboardColsHint": {
-    "message": "拖动调整顺序 · 勾选控制显示"
-  },
-  "popupColRank": {
-    "message": "排名"
-  },
-  "popupColIcon": {
-    "message": "等级图标"
-  },
-  "popupColHandle": {
-    "message": "用户名"
-  },
-  "popupColPreview": {
-    "message": "推文预览"
-  },
-  "popupColViews": {
-    "message": "浏览量"
-  },
-  "popupColVelocity": {
-    "message": "流速"
-  },
-  "contentViews": {
-    "message": "浏览量"
-  },
-  "contentLikes": {
-    "message": "点赞"
-  },
-  "contentRetweets": {
-    "message": "转发"
-  },
-  "contentReplies": {
-    "message": "回复"
-  },
-  "contentBookmarks": {
-    "message": "收藏"
-  },
-  "contentVelocity": {
-    "message": "流速"
-  },
-  "contentViralScore": {
-    "message": "爆帖指数"
-  },
-  "contentPosted": {
-    "message": "发布时间"
-  },
-  "contentLeaderboardTitle": {
-    "message": "本页热点"
-  },
-  "contentLeaderboardDragToMove": {
-    "message": "拖动以移动"
-  },
-  "contentLeaderboardBackToPrevious": {
-    "message": "返回之前的滚动位置"
-  },
-  "contentLeaderboardTotalViews": {
-    "message": "总浏览量"
-  },
-  "contentCopyMdLabel": {
-    "message": "复制为 Markdown"
-  },
-  "contentCopyMdDone": {
-    "message": "已复制！"
-  },
-  "contentCopyMdAttribution": {
-    "message": "由 X Viral Monitor 提供"
-  },
-  "contentCopyMdNoTweetFound": {
-    "message": "未找到推文"
-  },
-  "contentCopyMdCopyFailed": {
-    "message": "复制失败"
-  },
-  "contentFallbackTweetLabel": {
-    "message": "推文"
-  },
-  "flashColumnsSaved": {
-    "message": "列设置已保存 ✓"
-  },
-  "flashLeaderboardOn": {
-    "message": "流速榜已开启 ✓"
-  },
-  "flashLeaderboardOff": {
-    "message": "流速榜已关闭"
-  },
-  "flashCopyMdOn": {
-    "message": "Markdown 复制已开启 ✓"
-  },
-  "flashCopyMdOff": {
-    "message": "Markdown 复制已关闭"
-  },
+  "extName": { "message": "Red Viral Monitor" },
+  "extDescription": { "message": "小红书网页端笔记热度、页面榜单和 Markdown 复制工具" },
+  "popupSubtitle": { "message": "小红书网页端热度辅助" },
+  "tabSettings": { "message": "设置" },
+  "tabLeaderboard": { "message": "榜单" },
+  "tabAbout": { "message": "关于" },
+  "settingsThresholdsTitle": { "message": "热度阈值" },
+  "trendingLabel": { "message": "升温" },
+  "viralLabel": { "message": "爆款" },
+  "badgeStyleLabel": { "message": "标记样式" },
+  "badgeStylePill": { "message": "徽章" },
+  "badgeStyleInline": { "message": "简洁" },
+  "featureCopyMdLabel": { "message": "复制 Markdown" },
+  "featureCopyMdHint": { "message": "笔记浮层按钮" },
+  "saveButton": { "message": "保存" },
+  "resetButton": { "message": "重置" },
+  "displayTitle": { "message": "显示" },
+  "languageLabel": { "message": "语言" },
+  "languageAuto": { "message": "跟随浏览器" },
+  "languageZh": { "message": "中文" },
+  "languageEn": { "message": "English" },
+  "languageJa": { "message": "日本語" },
+  "themeLabel": { "message": "主题" },
+  "leaderboardTitle": { "message": "热度榜" },
+  "featureLeaderboardLabel": { "message": "页面榜单" },
+  "featureLeaderboardHint": { "message": "按互动速度排序" },
+  "topCountLabel": { "message": "数量" },
+  "columnsTitle": { "message": "列" },
+  "columnRank": { "message": "排名" },
+  "columnIcon": { "message": "状态" },
+  "columnAuthor": { "message": "作者" },
+  "columnPreview": { "message": "标题" },
+  "columnHeat": { "message": "热度" },
+  "columnVelocity": { "message": "速度" },
+  "resetLeaderboardPosition": { "message": "重置榜单位置" },
+  "featureLeaderboardResetDone": { "message": "已重置" },
+  "aboutTitle": { "message": "小红书专用" },
+  "aboutBody": { "message": "当前版本只在 xiaohongshu.com 运行，围绕笔记互动热度、页面榜单和 Markdown 复制工作。" },
+  "flashSaved": { "message": "已保存" },
+  "flashReset": { "message": "已重置" },
+  "flashCopyMdOn": { "message": "已开启复制" },
+  "flashCopyMdOff": { "message": "已关闭复制" },
+  "flashBadgeStyleSaved": { "message": "样式已保存" },
+  "flashLeaderboardOn": { "message": "榜单已开启" },
+  "flashLeaderboardOff": { "message": "榜单已关闭" },
   "flashShowingTop": {
-    "message": "当前显示前 $COUNT$ 条 ✓",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
+    "message": "显示前 $COUNT$ 条",
+    "placeholders": { "count": { "content": "$1" } }
   },
-  "contentStarChartMenuLabel": {
-    "message": "感谢星图"
-  },
-  "contentStarChartAttribution": {
-    "message": "由 X Viral Monitor 提供"
-  },
-  "contentStarChartTitle": {
-    "message": "感谢星图"
-  },
-  "contentStarChartLoading": {
-    "message": "正在加载支持者..."
-  },
-  "contentStarChartProgress": {
-    "message": "已加载 {{COUNT}} 位支持者"
-  },
-  "contentStarChartRateLimited": {
-    "message": "触发限频，等待 {{SECONDS}} 秒..."
-  },
-  "contentStarChartDone": {
-    "message": "完成 — 共 {{COUNT}} 位支持者"
-  },
-  "contentStarChartDoneTruncated": {
-    "message": "已达上限 — 已加载 {{COUNT}} 位（仍有更多未加载）"
-  },
-  "contentStarChartError": {
-    "message": "加载失败：{{REASON}}"
-  },
-  "contentStarChartNoTweetFound": {
-    "message": "无法识别这条推文"
-  },
-  "contentStarChartModuleNotLoaded": {
-    "message": "星图组件未加载 — 请刷新页面后重试"
-  },
-  "contentStarChartLegendRT": {
-    "message": "转推"
-  },
-  "contentStarChartLegendQuote": {
-    "message": "引用"
-  },
-  "contentStarChartLegendBoth": {
-    "message": "两者皆有"
-  },
-  "contentStarChartClose": {
-    "message": "关闭"
-  },
-  "contentStarChartStatRetweets": {
-    "message": "转推"
-  },
-  "contentStarChartStatQuotes": {
-    "message": "引用"
-  },
-  "contentStarChartStatSupporters": {
-    "message": "支持者"
-  },
-  "contentStarChartStatSpan": {
-    "message": "引用时间跨度"
-  },
-  "contentStarChartSearchPlaceholder": {
-    "message": "搜索昵称或用户名..."
-  },
-  "contentStarChartRiverTitle": {
-    "message": "引用之河"
-  },
-  "contentStarChartRiverEmpty": {
-    "message": "暂无引用推文"
-  },
-  "contentStarChartEmpty": {
-    "message": "这条推文暂时没有转推或引用"
-  },
-  "contentStarChartReset": {
-    "message": "重置视角"
-  },
-  "popupStarChartLabel": {
-    "message": "感谢星图"
-  },
-  "popupStarChartHint": {
-    "message": "在每条推文的分享菜单中添加生成星图的入口。"
-  },
-  "flashStarChartOn": {
-    "message": "已开启星图功能"
-  },
-  "flashStarChartOff": {
-    "message": "已关闭星图功能"
-  },
-  "featureBookmarkCountTitle": {
-    "message": "🔖 显示书签收藏数"
-  },
-  "featureBookmarkCountDesc": {
-    "message": "在时间线推文的书签按钮旁显示被收藏的数量。"
-  },
-  "flashBookmarkCountOn": {
-    "message": "已开启书签数显示"
-  },
-  "flashBookmarkCountOff": {
-    "message": "已关闭书签数显示"
-  },
-  "contentStarChartTitleLabel": {
-    "message": "速度监测"
-  },
-  "contentStarChartHeroEyebrow": {
-    "message": "谢谢每一个让这条推文继续走下去的人"
-  },
-  "contentStarChartHeroTitle": {
-    "message": "每一束光，都是一只把它传出去的手。"
-  },
-  "contentStarChartStatsSectionTitle": {
-    "message": "概览"
-  },
-  "contentStarChartPeopleSectionTitle": {
-    "message": "支持者"
-  },
-  "contentStarChartFilterAll": {
-    "message": "全部"
-  },
-  "contentStarChartFilterRetweet": {
-    "message": "转推"
-  },
-  "contentStarChartFilterQuote": {
-    "message": "引用"
-  },
-  "contentStarChartFilterBoth": {
-    "message": "两者"
-  },
-  "contentStarChartRiverPrev": {
-    "message": "上一条引用"
-  },
-  "contentStarChartRiverNext": {
-    "message": "下一条引用"
-  },
-  "popupGrokPromptTitle": {
-    "message": "Grok 评论提示词"
-  },
-  "popupGrokPromptHint": {
-    "message": "用 [推文内容] 表示原推文插入位置。点击回复框里的 AI 生成后选择模板，生成完成后再从 Options 中选择一条填入。"
-  },
-  "popupGrokTempChatLabel": {
-    "message": "使用临时对话（不污染 Grok 历史记录）"
-  },
-  "flashGrokTempChatOn": {
-    "message": "已开启临时对话 ✓"
-  },
-  "flashGrokTempChatOff": {
-    "message": "已关闭临时对话"
-  },
-  "flashGrokPromptSaved": {
-    "message": "Grok 提示词已保存 ✓"
-  },
-  "flashGrokPromptReset": {
-    "message": "Grok 提示词已重置 ✓"
-  },
-  "badgeStyleLabel": {
-    "message": "🏷️ 徽章样式"
-  },
-  "badgeStylePillSolid": {
-    "message": "胶囊实底"
-  },
-  "badgeStyleInlineClassic": {
-    "message": "经典行内"
-  },
-  "flashBadgeStyleSaved": {
-    "message": "徽章样式已保存 ✓"
-  },
-  "proBannerFree":       { "message": "免费版" },
-  "proBannerPro":        { "message": "Pro 已激活" },
-  "proBannerTrial":      { "message": "试用中 — 还剩 $DAYS$ 天", "placeholders": { "DAYS": { "content": "$1" } } },
-  "proBannerTrialOne":   { "message": "试用中 — 还剩 1 天" },
-  "proNudgeTrialEnd":    { "message": "试用还剩 $DAYS$ 天,升级 Pro 不中断流速过滤。", "placeholders": { "DAYS": { "content": "$1" } } },
-  "proNudgeTrialEndOne": { "message": "试用还剩 1 天,升级 Pro 不中断流速过滤。" },
-  "proCtaMonthly":       { "message": "月度 · $$2.9 / 月" },
-  "proCtaAnnual":        { "message": "年度 · $$29 / 年 (立省 17%)" },
-  "proActivateLabel":    { "message": "已购买? 在这里输入 license key:" },
-  "proActivatePlaceholder": { "message": "creem-XXXXX..." },
-  "proActivateBtn":      { "message": "激活" },
-  "proActivating":       { "message": "正在激活…" },
-  "proActivatedOk":      { "message": "激活成功,刷新 x.com 后生效。" },
-  "proActErrFormat":     { "message": "License key 格式不正确。" },
-  "proActErrWorkerUnset":{ "message": "License 代理尚未配置 — 请联系客服。" },
-  "proActErrGeneric":    { "message": "激活失败: $ERROR$", "placeholders": { "ERROR": { "content": "$1" } } },
-  "proLicenseField":     { "message": "License" },
-  "proActivatedField":   { "message": "激活时间" },
-  "proExpiresField":     { "message": "续费时间" },
-  "proManageBtn":        { "message": "管理订阅" },
-  "proDeactivateBtn":    { "message": "取消激活" },
-  "proDeactivating":     { "message": "正在取消…" },
-  "proDeactivatedOk":    { "message": "已取消激活。" },
-  "proDeactivateErr":    { "message": "取消激活失败。" },
-  "rfTitle":         { "message": "流速过滤 (Pro)" },
-  "rfLockedHint":    { "message": "升级 Pro 解锁流速过滤。" },
-  "rfEnabled":       { "message": "隐藏低流速推文" },
-  "rfScopeLegend":   { "message": "作用域" },
-  "rfScopeHome":     { "message": "首页" },
-  "rfScopeList":     { "message": "列表" },
-  "rfScopeProfile":  { "message": "博主主页" },
-  "rfScopeStatus":   { "message": "帖子详情" },
-  "rfShortLegend":   { "message": "短推 — 任一过线即显示" },
-  "rfLongLegend":    { "message": "X Articles 长文 — 任一过线即显示" },
-  "rfRatePerMin":    { "message": "views / 分钟 ≥" },
-  "rfAbsoluteViews": { "message": "总浏览量 ≥" },
-  "rfRuleHint":      { "message": "规则: 若 (views/min > 速率阈值) 或 (总浏览量 > 绝对阈值) 任一成立即显示, 否则隐藏。" },
-  "rfReset":         { "message": "恢复默认" },
-  "rfSave":          { "message": "保存" },
-  "rfSavedOk":       { "message": "已保存 ✓" },
-  "rfResetOk":       { "message": "已重置 ✓" },
-  "featureLeaderboardResetPos":  { "message": "重置流速榜位置" },
-  "featureLeaderboardResetDone": { "message": "已重置,请刷新页面。" },
-  "accRateFilter":    { "message": "流速过滤" },
-  "accRateFilterSub": { "message": "Pro" },
-  "accLeaderboard":   { "message": "流速榜与徽章" },
-  "accPro":           { "message": "License / Pro" },
-  "accOther":         { "message": "其它功能与设置" },
-  "heroTrialDaysLeft": { "message": "试用还剩 $DAYS$ 天", "placeholders": { "DAYS": { "content": "$1" } } },
-  "heroTrialDayOne":   { "message": "试用还剩 1 天" },
-  "heroProActive":     { "message": "已激活 · 感谢你的支持!" },
-  "heroFreeTagline":   { "message": "升级解锁流速过滤等高级功能" },
-  "heroCtaUpgradeAnnual":  { "message": "升级 Pro · $$29/年 (立省 17%)" },
-  "heroCtaUpgradeMonthly": { "message": "也可按月订阅 · $$2.9/月" },
-  "heroActivateExistingLink": { "message": "已有 license? 在此激活" },
-  "cardFreeFeaturesTitle":  { "message": "免费功能" },
-  "cardProFeaturesTitle":   { "message": "Pro 功能" },
-  "cardProFeaturesSub":     { "message": "试用期内全部解锁" },
-  "featureBadgeLabel":       { "message": "流速徽章" },
-  "featureLeaderboardLabel": { "message": "流速榜面板" },
-  "featureCopyMdLabel":      { "message": "Markdown 复制" },
-  "featureRateFilterLabel":  { "message": "流速过滤" },
-  "featureColorCardLabel":   { "message": "自定义色卡" },
-  "featureWebhookLabel":     { "message": "私有热帖监控" },
-  "featureBarkLabel":        { "message": "Bark 推送" },
-  "chipEnabled":     { "message": "已启用" },
-  "chipComingSoon":  { "message": "敬请期待" },
-  "btnConfigure":    { "message": "配置 →" },
-  "btnBack":         { "message": "返回" },
-  "btnCancel":       { "message": "取消" },
-  "footerPoweredBy": { "message": "Powered by" },
-  "toastM2Hint":     { "message": "v1.8.0 即将推出" },
-  "activateTitle":   { "message": "激活已有 license" },
-  "advBadgeThresholdsTitle": { "message": "徽章阈值与样式" },
-  "advLeaderboardTitle":     { "message": "流速榜详情" },
-  "advOtherFeaturesTitle":   { "message": "其它功能" },
-  "advGrokShortTitle":       { "message": "Grok 回复 — 短推模板" },
-  "advGrokArticleTitle":     { "message": "Grok 回复 — 长文模板" },
-  "tabPro":         { "message": "Pro" },
-  "tabFilter":      { "message": "过滤" },
-  "tabLeaderboard": { "message": "流速榜" },
-  "tabAbout":       { "message": "关于" },
-  "rfSubShort":     { "message": "短推" },
-  "rfSubLong":      { "message": "长文 (X Article)" },
-  "comingListTitle":{ "message": "v1.8.0 即将推出" },
-  "chipTierFree":   { "message": "免费" },
-  "chipTierTrial":  { "message": "试用" },
-  "chipTierPro":    { "message": "Pro" },
-  "chipTrialDays":  { "message": "还剩 $DAYS$ 天", "placeholders": { "DAYS": { "content": "$1" } } },
-  "chipTrialOne":   { "message": "还剩 1 天" },
-  "themeLabel":     { "message": "主题" },
-  "themeSwitchToDark":  { "message": "切换到深色" },
-  "themeSwitchToLight": { "message": "切换到明亮" },
-  "themeFollowSystem":  { "message": "跟随系统" },
-  "languageLabel":      { "message": "语言" },
-  "languageHint":       { "message": "控制弹窗、页面浮层和默认 Grok 提示词语言。" },
-  "languageAuto":       { "message": "自动 / 跟随浏览器" },
-  "languageZh":         { "message": "中文" },
-  "languageEn":         { "message": "English" },
-  "languageJa":         { "message": "日本語" },
-  "grokShortTemplateLabel": { "message": "推文模板（短推文，<600 字）" },
-  "grokArticleTemplateLabel": { "message": "文章模板（X Article / 长文，≥600 字时使用）" },
-  "grokArticleTemplateHint": { "message": "回复 X 上的长文 / Article 时自动使用这组模板。" },
-  "grokDefaultTemplateName": { "message": "自然中文评论" },
-  "grokCustomTemplateName": { "message": "模板 $N$", "placeholders": { "N": { "content": "$1" } } },
-  "grokArticleFallbackName": { "message": "文章模板" },
-  "grokArticleCustomTemplateName": { "message": "文章模板 $N$", "placeholders": { "N": { "content": "$1" } } },
-  "contentLbHotOnly":      { "message": "仅看热帖" },
-  "contentLbHotProTitle":  { "message": "流速过滤是 Pro 功能" },
-  "contentLbHotProSub":    { "message": "隐藏低浏览量推文,保留真正在传播的内容" },
-  "contentLbHotMonthly":   { "message": "月度 $$2.9/月" },
-  "contentLbHotAnnual":    { "message": "年度 $$29/年 (省 17%)" },
-  "cfTitle":        { "message": "内容屏蔽" },
-  "cfLockedHint":   { "message": "升级 Pro 解锁内容屏蔽。" },
-  "cfEnabled":      { "message": "隐藏黄推 / 广告 / 引流回复" },
-  "cfLevel":        { "message": "屏蔽强度" },
-  "cfLevelLight":   { "message": "宽松" },
-  "cfLevelStandard":{ "message": "标准" },
-  "cfLevelStrict":  { "message": "严格" },
-  "cfRuleCounts":   { "message": "当前强度启用 $COUNT$ 条内置规则，自定义 $CUSTOM$ 条。", "placeholders": { "COUNT": { "content": "$1" }, "CUSTOM": { "content": "$2" } } },
-  "cfScopeHint":    { "message": "仅作用于推文详情页评论区，不影响主页/搜索/用户主页/主推文本身。" },
-  "cfCustomTitle":  { "message": "自定义规则" },
-  "cfWhitelistTitle": { "message": "白名单 / 黑名单设置" },
-  "cfValue":        { "message": "关键词 / 正则 / 域名" },
-  "cfAddRule":      { "message": "添加规则" },
-  "cfDeleteRule":   { "message": "删除规则" },
-  "cfCustomEmpty":  { "message": "暂无自定义规则。" },
-  "cfWhitelistFollowing": { "message": "始终放行已关注账号" },
-  "cfWhitelistHandles": { "message": "白名单账号" },
-  "cfBlacklistHandles": { "message": "黑名单账号" },
-  "cfWhitelistDomains": { "message": "白名单域名" },
-  "cfAllRulesTitle": { "message": "全部规则" },
-  "cfBuiltinRule":  { "message": "内置" },
-  "cfCustomRule":   { "message": "自定义" },
-  "cfNoRules":      { "message": "暂无规则。" },
-  "cfRuleHint":     { "message": "本地规则只在浏览器内运行，不上传内容；先应用白名单，再应用硬规则和强度阈值。" },
-  "cfRulesSourceBundled": { "message": "规则来源:内置" },
-  "cfRulesSourceRemote":  { "message": "规则来源:远程 · 更新于 $AGO$", "placeholders": { "AGO": { "content": "$1" } } },
-  "cfRulesJustNow":       { "message": "刚刚" },
-  "cfRulesMinutesAgo":    { "message": "$N$ 分钟前", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesHoursAgo":      { "message": "$N$ 小时前", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesDaysAgo":       { "message": "$N$ 天前", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesRefresh":       { "message": "立即检查更新" },
-  "cfRulesRefreshing":    { "message": "拉取中…" },
-  "cfRulesRefreshOk":     { "message": "规则已更新。" },
-  "cfRulesRefreshErr":    { "message": "拉取失败,请稍后重试。" },
-  "cfAutoSaved":          { "message": "已自动保存" },
-  "advAppearanceTitle": { "message": "外观" }
+  "flashColumnsSaved": { "message": "列已保存" },
+  "flashLanguageSaved": { "message": "语言已保存" },
+  "flashThemeSaved": { "message": "主题已保存" },
+  "contentLikes": { "message": "点赞" },
+  "contentCollects": { "message": "收藏" },
+  "contentComments": { "message": "评论" },
+  "contentShares": { "message": "分享" },
+  "contentHeat": { "message": "互动热度" },
+  "contentVelocity": { "message": "热度速度" },
+  "contentEstimated": { "message": "估算" },
+  "contentPosted": { "message": "发布" },
+  "contentAuthor": { "message": "作者" },
+  "contentSource": { "message": "来源" },
+  "contentLeaderboardTitle": { "message": "小红书热度榜" },
+  "contentLeaderboardDragToMove": { "message": "拖动移动榜单" },
+  "contentLeaderboardEmpty": { "message": "等待捕获笔记" },
+  "contentCopyMdLabel": { "message": "复制笔记为 Markdown" },
+  "contentCopyMdDone": { "message": "已复制 Markdown" },
+  "contentCopyMdNoNoteFound": { "message": "未找到笔记" },
+  "contentCopyMdCopyFailed": { "message": "复制失败" },
+  "contentFallbackNoteLabel": { "message": "小红书笔记" }
 }

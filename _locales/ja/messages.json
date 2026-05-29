@@ -1,468 +1,72 @@
 {
-  "extName": {
-    "message": "X バイラルモニター"
-  },
-  "extDescription": {
-    "message": "X 投稿の流速バッジ・長尺画像ビューア・Markdown コピー・サポーター星図・Grok 返信補助 — すべてローカル処理、データ収集なし。"
-  },
-  "popupSubtitle": {
-    "message": "X 投稿のリアルタイム表示流速"
-  },
-  "tierNormal": {
-    "message": "通常"
-  },
-  "tierTrending": {
-    "message": "上昇中"
-  },
-  "tierViral": {
-    "message": "バズ中"
-  },
-  "hoverHint": {
-    "message": "バッジにホバーして表示数・いいね・リポスト・返信・ブックマーク・バズ指数を確認。"
-  },
-  "thresholdTrending": {
-    "message": "🚀 上昇中のしきい値"
-  },
-  "thresholdViral": {
-    "message": "🔥 バズのしきい値"
-  },
-  "btnSave": {
-    "message": "保存"
-  },
-  "btnReset": {
-    "message": "リセット"
-  },
-  "btnAdd": {
-    "message": "追加"
-  },
-  "btnDelete": {
-    "message": "削除"
-  },
-  "flashSaved": {
-    "message": "保存しました ✓"
-  },
-  "flashReset": {
-    "message": "リセットしました ✓"
-  },
-  "featureCopyMdTitle": {
-    "message": "📋 投稿を Markdown としてコピー"
-  },
-  "featureCopyMdDesc": {
-    "message": "X のネイティブ共有メニューの下部に「Markdown としてコピー」を追加し、本文・投稿者・リンク・日時を Markdown 形式でコピーします。"
-  },
-  "featureLeaderboardTitle": {
-    "message": "📊 流速リーダーボード"
-  },
-  "featureLeaderboardDesc": {
-    "message": "現在のページで最も伸びている投稿を表示するドラッグ可能なフローティングパネルです。行をクリックすると投稿までスクロールします。"
-  },
-  "featureLeaderboardShowTop": {
-    "message": "上位"
-  },
-  "featureLeaderboardTweets": {
-    "message": "件を表示"
-  },
-  "featureLeaderboardColsHint": {
-    "message": "ドラッグで並べ替え · チェックで表示"
-  },
-  "popupColRank": {
-    "message": "順位"
-  },
-  "popupColIcon": {
-    "message": "ティアアイコン"
-  },
-  "popupColHandle": {
-    "message": "ユーザー名"
-  },
-  "popupColPreview": {
-    "message": "投稿プレビュー"
-  },
-  "popupColViews": {
-    "message": "表示回数"
-  },
-  "popupColVelocity": {
-    "message": "流速"
-  },
-  "contentViews": {
-    "message": "表示回数"
-  },
-  "contentLikes": {
-    "message": "いいね"
-  },
-  "contentRetweets": {
-    "message": "リポスト"
-  },
-  "contentReplies": {
-    "message": "返信"
-  },
-  "contentBookmarks": {
-    "message": "ブックマーク"
-  },
-  "contentVelocity": {
-    "message": "流速"
-  },
-  "contentViralScore": {
-    "message": "バズ指数"
-  },
-  "contentPosted": {
-    "message": "投稿日時"
-  },
-  "contentLeaderboardTitle": {
-    "message": "このページの注目投稿"
-  },
-  "contentLeaderboardDragToMove": {
-    "message": "ドラッグして移動"
-  },
-  "contentLeaderboardBackToPrevious": {
-    "message": "前のスクロール位置に戻る"
-  },
-  "contentLeaderboardTotalViews": {
-    "message": "総表示回数"
-  },
-  "contentCopyMdLabel": {
-    "message": "Markdown としてコピー"
-  },
-  "contentCopyMdDone": {
-    "message": "コピーしました！"
-  },
-  "contentCopyMdAttribution": {
-    "message": "via X Viral Monitor"
-  },
-  "contentCopyMdNoTweetFound": {
-    "message": "投稿が見つかりません"
-  },
-  "contentCopyMdCopyFailed": {
-    "message": "コピーに失敗しました"
-  },
-  "contentFallbackTweetLabel": {
-    "message": "投稿"
-  },
-  "flashColumnsSaved": {
-    "message": "列設定を保存しました ✓"
-  },
-  "flashLeaderboardOn": {
-    "message": "リーダーボードを有効化 ✓"
-  },
-  "flashLeaderboardOff": {
-    "message": "リーダーボードを無効化"
-  },
-  "flashCopyMdOn": {
-    "message": "Markdown コピーを有効化 ✓"
-  },
-  "flashCopyMdOff": {
-    "message": "Markdown コピーを無効化"
-  },
-  "flashShowingTop": {
-    "message": "上位 $COUNT$ 件を表示 ✓",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
-  },
-  "contentStarChartMenuLabel": {
-    "message": "サンクス・スターチャート"
-  },
-  "contentStarChartAttribution": {
-    "message": "via X Viral Monitor"
-  },
-  "contentStarChartTitle": {
-    "message": "サンクス・スターチャート"
-  },
-  "contentStarChartLoading": {
-    "message": "サポーターを読み込み中..."
-  },
-  "contentStarChartProgress": {
-    "message": "{{COUNT}} 名読み込み済み"
-  },
-  "contentStarChartRateLimited": {
-    "message": "レート制限のため {{SECONDS}} 秒待機中..."
-  },
-  "contentStarChartDone": {
-    "message": "完了 — {{COUNT}} 名のサポーター"
-  },
-  "contentStarChartDoneTruncated": {
-    "message": "上限到達 — {{COUNT}} 名読み込み済み（さらに存在）"
-  },
-  "contentStarChartError": {
-    "message": "読み込み失敗：{{REASON}}"
-  },
-  "contentStarChartNoTweetFound": {
-    "message": "ツイートを特定できません"
-  },
-  "contentStarChartModuleNotLoaded": {
-    "message": "スターチャートを読み込めません — ページを再読み込みしてください"
-  },
-  "contentStarChartLegendRT": {
-    "message": "リツイート"
-  },
-  "contentStarChartLegendQuote": {
-    "message": "引用"
-  },
-  "contentStarChartLegendBoth": {
-    "message": "両方"
-  },
-  "contentStarChartClose": {
-    "message": "閉じる"
-  },
-  "contentStarChartStatRetweets": {
-    "message": "リツイート"
-  },
-  "contentStarChartStatQuotes": {
-    "message": "引用"
-  },
-  "contentStarChartStatSupporters": {
-    "message": "サポーター"
-  },
-  "contentStarChartStatSpan": {
-    "message": "引用期間"
-  },
-  "contentStarChartSearchPlaceholder": {
-    "message": "名前 / ハンドルで検索..."
-  },
-  "contentStarChartRiverTitle": {
-    "message": "引用ストリーム"
-  },
-  "contentStarChartRiverEmpty": {
-    "message": "引用ツイートはまだありません"
-  },
-  "contentStarChartEmpty": {
-    "message": "このツイートにはまだサポーターがいません"
-  },
-  "contentStarChartReset": {
-    "message": "ビューをリセット"
-  },
-  "popupStarChartLabel": {
-    "message": "サンクス・スターチャート"
-  },
-  "popupStarChartHint": {
-    "message": "ツイートの共有メニューにスターチャート生成項目を追加します。"
-  },
-  "flashStarChartOn": {
-    "message": "スターチャートを有効化"
-  },
-  "flashStarChartOff": {
-    "message": "スターチャートを無効化"
-  },
-  "featureBookmarkCountTitle": {
-    "message": "🔖 ブックマーク数を表示"
-  },
-  "featureBookmarkCountDesc": {
-    "message": "タイムライン上の各ツイートのブックマークボタン横にブックマーク数を表示します。"
-  },
-  "flashBookmarkCountOn": {
-    "message": "ブックマーク数の表示を有効化"
-  },
-  "flashBookmarkCountOff": {
-    "message": "ブックマーク数の表示を無効化"
-  },
-  "contentStarChartTitleLabel": {
-    "message": "ベロシティモニター"
-  },
-  "contentStarChartHeroEyebrow": {
-    "message": "この投稿を運んでくれたすべての人へ"
-  },
-  "contentStarChartHeroTitle": {
-    "message": "ひとつひとつの光は、投稿を手渡した手。"
-  },
-  "contentStarChartStatsSectionTitle": {
-    "message": "概要"
-  },
-  "contentStarChartPeopleSectionTitle": {
-    "message": "サポーター"
-  },
-  "contentStarChartFilterAll": {
-    "message": "全て"
-  },
-  "contentStarChartFilterRetweet": {
-    "message": "リツイート"
-  },
-  "contentStarChartFilterQuote": {
-    "message": "引用"
-  },
-  "contentStarChartFilterBoth": {
-    "message": "両方"
-  },
-  "contentStarChartRiverPrev": {
-    "message": "前の引用"
-  },
-  "contentStarChartRiverNext": {
-    "message": "次の引用"
-  },
-  "popupGrokPromptTitle": {
-    "message": "Grok コメントプロンプト"
-  },
-  "popupGrokPromptHint": {
-    "message": "[推文内容] を元ツイートの挿入位置として使います。返信欄の AI 生成をクリックしてテンプレートを選び、生成後に Options から1件を選んで入力します。"
-  },
-  "popupGrokTempChatLabel": {
-    "message": "一時チャットを使う（Grok 履歴を汚さない）"
-  },
-  "flashGrokTempChatOn": {
-    "message": "一時チャットを有効にしました ✓"
-  },
-  "flashGrokTempChatOff": {
-    "message": "一時チャットを無効にしました"
-  },
-  "flashGrokPromptSaved": {
-    "message": "Grok プロンプトを保存しました ✓"
-  },
-  "flashGrokPromptReset": {
-    "message": "Grok プロンプトをリセットしました ✓"
-  },
-  "badgeStyleLabel": {
-    "message": "🏷️ バッジスタイル"
-  },
-  "badgeStylePillSolid": {
-    "message": "ソリッドピル"
-  },
-  "badgeStyleInlineClassic": {
-    "message": "クラシックインライン"
-  },
-  "flashBadgeStyleSaved": {
-    "message": "バッジスタイルを保存しました ✓"
-  },
-  "proBannerFree":       { "message": "無料版" },
-  "proBannerPro":        { "message": "Pro 有効" },
-  "proBannerTrial":      { "message": "トライアル — 残り $DAYS$ 日", "placeholders": { "DAYS": { "content": "$1" } } },
-  "proBannerTrialOne":   { "message": "トライアル — 残り 1 日" },
-  "proNudgeTrialEnd":    { "message": "トライアル残り $DAYS$ 日 — Pro にアップグレードしてフィルタを継続。", "placeholders": { "DAYS": { "content": "$1" } } },
-  "proNudgeTrialEndOne": { "message": "トライアル残り 1 日 — Pro にアップグレードしてフィルタを継続。" },
-  "proCtaMonthly":       { "message": "月額 · $$2.9 / 月" },
-  "proCtaAnnual":        { "message": "年額 · $$29 / 年 (17% お得)" },
-  "proActivateLabel":    { "message": "購入済みですか? ライセンスキーを入力:" },
-  "proActivatePlaceholder": { "message": "creem-XXXXX..." },
-  "proActivateBtn":      { "message": "有効化" },
-  "proActivating":       { "message": "有効化中…" },
-  "proActivatedOk":      { "message": "ライセンスを有効化しました。x.com を再読み込みしてください。" },
-  "proActErrFormat":     { "message": "ライセンスキーの形式が正しくありません。" },
-  "proActErrWorkerUnset":{ "message": "ライセンスプロキシ未設定 — サポートにご連絡ください。" },
-  "proActErrGeneric":    { "message": "有効化失敗: $ERROR$", "placeholders": { "ERROR": { "content": "$1" } } },
-  "proLicenseField":     { "message": "ライセンス" },
-  "proActivatedField":   { "message": "有効化日" },
-  "proExpiresField":     { "message": "更新日" },
-  "proManageBtn":        { "message": "サブスクリプション管理" },
-  "proDeactivateBtn":    { "message": "無効化" },
-  "proDeactivating":     { "message": "無効化中…" },
-  "proDeactivatedOk":    { "message": "無効化しました。" },
-  "proDeactivateErr":    { "message": "無効化に失敗しました。" },
-  "rfTitle":         { "message": "流速フィルター (Pro)" },
-  "rfLockedHint":    { "message": "Pro にアップグレードして流速フィルターを解放。" },
-  "rfEnabled":       { "message": "低流速の投稿を非表示にする" },
-  "rfScopeLegend":   { "message": "スコープ" },
-  "rfScopeHome":     { "message": "ホーム" },
-  "rfScopeList":     { "message": "リスト" },
-  "rfScopeProfile":  { "message": "プロフィール" },
-  "rfScopeStatus":   { "message": "投稿詳細" },
-  "rfShortLegend":   { "message": "短い投稿 — いずれかが閾値超なら表示" },
-  "rfLongLegend":    { "message": "X Articles 長文 — いずれかが閾値超なら表示" },
-  "rfRatePerMin":    { "message": "views / 分 ≥" },
-  "rfAbsoluteViews": { "message": "総表示数 ≥" },
-  "rfRuleHint":      { "message": "ルール: (views/min > 速度閾値) または (総表示数 > 絶対閾値) いずれか成立で表示, それ以外は非表示。" },
-  "rfReset":         { "message": "デフォルト" },
-  "rfSave":          { "message": "保存" },
-  "rfSavedOk":       { "message": "保存しました ✓" },
-  "rfResetOk":       { "message": "リセット ✓" },
-  "featureLeaderboardResetPos":  { "message": "ランキング位置をリセット" },
-  "featureLeaderboardResetDone": { "message": "リセットしました。ページを更新してください。" },
-  "accRateFilter":    { "message": "流速フィルター" },
-  "accRateFilterSub": { "message": "Pro" },
-  "accLeaderboard":   { "message": "ランキングとバッジ" },
-  "accPro":           { "message": "ライセンス / Pro" },
-  "accOther":         { "message": "その他の機能と設定" },
-  "heroTrialDaysLeft": { "message": "トライアル残り $DAYS$ 日", "placeholders": { "DAYS": { "content": "$1" } } },
-  "heroTrialDayOne":   { "message": "トライアル残り 1 日" },
-  "heroProActive":     { "message": "有効 · ご支援ありがとうございます" },
-  "heroFreeTagline":   { "message": "Pro にアップグレードして流速フィルターを開放" },
-  "heroCtaUpgradeAnnual":  { "message": "Pro へアップグレード · $$29/年 (17% お得)" },
-  "heroCtaUpgradeMonthly": { "message": "月額もあります · $$2.9/月" },
-  "heroActivateExistingLink": { "message": "既存ライセンスを有効化" },
-  "cardFreeFeaturesTitle":  { "message": "無料機能" },
-  "cardProFeaturesTitle":   { "message": "Pro 機能" },
-  "cardProFeaturesSub":     { "message": "トライアル中はすべて解放" },
-  "featureBadgeLabel":       { "message": "流速バッジ" },
-  "featureLeaderboardLabel": { "message": "ランキングパネル" },
-  "featureCopyMdLabel":      { "message": "Markdown としてコピー" },
-  "featureRateFilterLabel":  { "message": "流速フィルター" },
-  "featureColorCardLabel":   { "message": "カラーパレット" },
-  "featureWebhookLabel":     { "message": "プライベートホット監視" },
-  "featureBarkLabel":        { "message": "Bark 通知" },
-  "chipEnabled":     { "message": "有効" },
-  "chipComingSoon":  { "message": "近日公開" },
-  "btnConfigure":    { "message": "設定 →" },
-  "btnBack":         { "message": "戻る" },
-  "btnCancel":       { "message": "キャンセル" },
-  "footerPoweredBy": { "message": "Powered by" },
-  "toastM2Hint":     { "message": "v1.8.0 で公開予定" },
-  "activateTitle":   { "message": "既存ライセンスを有効化" },
-  "advBadgeThresholdsTitle": { "message": "バッジ閾値とスタイル" },
-  "advLeaderboardTitle":     { "message": "ランキング詳細" },
-  "advOtherFeaturesTitle":   { "message": "その他の機能" },
-  "advGrokShortTitle":       { "message": "Grok — 短い投稿テンプレート" },
-  "advGrokArticleTitle":     { "message": "Grok — 記事テンプレート" },
-  "tabPro":         { "message": "Pro" },
-  "tabFilter":      { "message": "フィルター" },
+  "extName": { "message": "Red Viral Monitor" },
+  "extDescription": { "message": "小紅書 Web 向けのヒート表示、ページ内ランキング、Markdown コピー" },
+  "popupSubtitle": { "message": "小紅書 Web ヒート補助" },
+  "tabSettings": { "message": "設定" },
   "tabLeaderboard": { "message": "ランキング" },
-  "tabAbout":       { "message": "情報" },
-  "rfSubShort":     { "message": "短い投稿" },
-  "rfSubLong":      { "message": "長文 (X Article)" },
-  "comingListTitle":{ "message": "v1.8.0 で公開予定" },
-  "chipTierFree":   { "message": "無料" },
-  "chipTierTrial":  { "message": "トライアル" },
-  "chipTierPro":    { "message": "Pro" },
-  "chipTrialDays":  { "message": "残り $DAYS$ 日", "placeholders": { "DAYS": { "content": "$1" } } },
-  "chipTrialOne":   { "message": "残り 1 日" },
-  "themeLabel":     { "message": "テーマ" },
-  "themeSwitchToDark":  { "message": "ダークに切替" },
-  "themeSwitchToLight": { "message": "ライトに切替" },
-  "themeFollowSystem":  { "message": "システムに従う" },
-  "languageLabel":      { "message": "言語" },
-  "languageHint":       { "message": "ポップアップ、ページ上の表示、既定の Grok プロンプト言語を切り替えます。" },
-  "languageAuto":       { "message": "自動 / ブラウザに従う" },
-  "languageZh":         { "message": "中文" },
-  "languageEn":         { "message": "English" },
-  "languageJa":         { "message": "日本語" },
-  "grokShortTemplateLabel": { "message": "投稿テンプレート（短い投稿、600 字未満）" },
-  "grokArticleTemplateLabel": { "message": "記事テンプレート（X Article / 長文、600 字以上で使用）" },
-  "grokArticleTemplateHint": { "message": "X の長文投稿や Article に返信するとき、このテンプレート群を自動で使います。" },
-  "grokDefaultTemplateName": { "message": "自然な返信" },
-  "grokCustomTemplateName": { "message": "テンプレート $N$", "placeholders": { "N": { "content": "$1" } } },
-  "grokArticleFallbackName": { "message": "記事テンプレート" },
-  "grokArticleCustomTemplateName": { "message": "記事テンプレート $N$", "placeholders": { "N": { "content": "$1" } } },
-  "contentLbHotOnly":      { "message": "ホットのみ" },
-  "contentLbHotProTitle":  { "message": "流速フィルターは Pro 機能" },
-  "contentLbHotProSub":    { "message": "低表示数の投稿を非表示にし、実際に拡散している投稿だけ残す" },
-  "contentLbHotMonthly":   { "message": "月額 $$2.9/月" },
-  "contentLbHotAnnual":    { "message": "年額 $$29/年 (17% お得)" },
-  "cfTitle":        { "message": "コンテンツフィルター (Pro)" },
-  "cfLockedHint":   { "message": "Pro にアップグレードすると利用できます。" },
-  "cfEnabled":      { "message": "成人向け / 広告 / 誘導返信を隠す" },
-  "cfLevel":        { "message": "フィルター強度" },
-  "cfLevelLight":   { "message": "軽め" },
-  "cfLevelStandard":{ "message": "標準" },
-  "cfLevelStrict":  { "message": "強め" },
-  "cfRuleCounts":   { "message": "内蔵ルール $COUNT$ 件、カスタム $CUSTOM$ 件が有効です。", "placeholders": { "COUNT": { "content": "$1" }, "CUSTOM": { "content": "$2" } } },
-  "cfCustomTitle":  { "message": "カスタムルール" },
-  "cfWhitelistTitle": { "message": "ホワイトリスト / ブラックリスト設定" },
-  "cfValue":        { "message": "キーワード / 正規表現 / ドメイン" },
-  "cfAddRule":      { "message": "ルールを追加" },
-  "cfDeleteRule":   { "message": "ルールを削除" },
-  "cfCustomEmpty":  { "message": "カスタムルールはまだありません。" },
-  "cfWhitelistFollowing": { "message": "フォロー中のアカウントは常に許可" },
-  "cfWhitelistHandles": { "message": "許可するアカウント" },
-  "cfBlacklistHandles": { "message": "ブロックするアカウント" },
-  "cfWhitelistDomains": { "message": "許可するドメイン" },
-  "cfRuleHint":     { "message": "ルールはブラウザ内だけで実行され、内容はアップロードされません。ホワイトリスト、ハードルール、強度しきい値の順に適用します。" },
-  "cfRulesSourceBundled": { "message": "ルール元: 同梱" },
-  "cfRulesSourceRemote":  { "message": "ルール元: リモート · 更新 $AGO$", "placeholders": { "AGO": { "content": "$1" } } },
-  "cfRulesJustNow":       { "message": "たった今" },
-  "cfRulesMinutesAgo":    { "message": "$N$ 分前", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesHoursAgo":      { "message": "$N$ 時間前", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesDaysAgo":       { "message": "$N$ 日前", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesRefresh":       { "message": "今すぐ更新を確認" },
-  "cfRulesRefreshing":    { "message": "取得中…" },
-  "cfRulesRefreshOk":     { "message": "ルールを更新しました。" },
-  "cfRulesRefreshErr":    { "message": "取得に失敗しました。後ほど再試行してください。" },
-  "cfAutoSaved":          { "message": "自動保存しました" },
-  "advAppearanceTitle": { "message": "外観" }
+  "tabAbout": { "message": "情報" },
+  "settingsThresholdsTitle": { "message": "ヒート閾値" },
+  "trendingLabel": { "message": "上昇" },
+  "viralLabel": { "message": "バズ" },
+  "badgeStyleLabel": { "message": "表示形式" },
+  "badgeStylePill": { "message": "バッジ" },
+  "badgeStyleInline": { "message": "コンパクト" },
+  "featureCopyMdLabel": { "message": "Markdown コピー" },
+  "featureCopyMdHint": { "message": "ノート上のボタン" },
+  "saveButton": { "message": "保存" },
+  "resetButton": { "message": "リセット" },
+  "displayTitle": { "message": "表示" },
+  "languageLabel": { "message": "言語" },
+  "languageAuto": { "message": "ブラウザに従う" },
+  "languageZh": { "message": "中文" },
+  "languageEn": { "message": "English" },
+  "languageJa": { "message": "日本語" },
+  "themeLabel": { "message": "テーマ" },
+  "leaderboardTitle": { "message": "ヒートランキング" },
+  "featureLeaderboardLabel": { "message": "ページランキング" },
+  "featureLeaderboardHint": { "message": "反応速度で並び替え" },
+  "topCountLabel": { "message": "件数" },
+  "columnsTitle": { "message": "列" },
+  "columnRank": { "message": "順位" },
+  "columnIcon": { "message": "状態" },
+  "columnAuthor": { "message": "作者" },
+  "columnPreview": { "message": "タイトル" },
+  "columnHeat": { "message": "ヒート" },
+  "columnVelocity": { "message": "速度" },
+  "resetLeaderboardPosition": { "message": "位置をリセット" },
+  "featureLeaderboardResetDone": { "message": "リセットしました" },
+  "aboutTitle": { "message": "小紅書専用" },
+  "aboutBody": { "message": "このバージョンは xiaohongshu.com のみで動作し、ノートのヒート、ページランキング、Markdown コピーに集中します。" },
+  "flashSaved": { "message": "保存しました" },
+  "flashReset": { "message": "リセットしました" },
+  "flashCopyMdOn": { "message": "コピーを有効化" },
+  "flashCopyMdOff": { "message": "コピーを無効化" },
+  "flashBadgeStyleSaved": { "message": "表示形式を保存しました" },
+  "flashLeaderboardOn": { "message": "ランキングを有効化" },
+  "flashLeaderboardOff": { "message": "ランキングを無効化" },
+  "flashShowingTop": {
+    "message": "上位 $COUNT$ 件を表示",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "flashColumnsSaved": { "message": "列を保存しました" },
+  "flashLanguageSaved": { "message": "言語を保存しました" },
+  "flashThemeSaved": { "message": "テーマを保存しました" },
+  "contentLikes": { "message": "いいね" },
+  "contentCollects": { "message": "保存" },
+  "contentComments": { "message": "コメント" },
+  "contentShares": { "message": "シェア" },
+  "contentHeat": { "message": "ヒート" },
+  "contentVelocity": { "message": "ヒート速度" },
+  "contentEstimated": { "message": "推定" },
+  "contentPosted": { "message": "投稿日" },
+  "contentAuthor": { "message": "作者" },
+  "contentSource": { "message": "出典" },
+  "contentLeaderboardTitle": { "message": "小紅書ヒートランキング" },
+  "contentLeaderboardDragToMove": { "message": "ドラッグして移動" },
+  "contentLeaderboardEmpty": { "message": "ノート待機中" },
+  "contentCopyMdLabel": { "message": "ノートを Markdown でコピー" },
+  "contentCopyMdDone": { "message": "Markdown をコピーしました" },
+  "contentCopyMdNoNoteFound": { "message": "ノートが見つかりません" },
+  "contentCopyMdCopyFailed": { "message": "コピーに失敗しました" },
+  "contentFallbackNoteLabel": { "message": "小紅書ノート" }
 }

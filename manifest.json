@@ -1,34 +1,41 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extName__",
-  "version": "1.7.10",
+  "version": "2.0.0",
   "description": "__MSG_extDescription__",
-  "default_locale": "en",
+  "default_locale": "zh_CN",
   "permissions": ["storage"],
-  "host_permissions": ["https://raw.githubusercontent.com/*"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "__MSG_extName__",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "icons/icon-v3-16.png",
+      "48": "icons/icon-v3-48.png",
+      "128": "icons/icon-v3-128.png"
     }
   },
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/icon-v3-16.png",
+    "48": "icons/icon-v3-48.png",
+    "128": "icons/icon-v3-128.png"
   },
   "content_scripts": [
     {
-      "matches": ["https://x.com/*", "https://pro.x.com/*"],
-      "js": ["bridge.js", "src/premium/license/tier-logic.js", "src/premium/license/entitlement.js", "src/premium/license/isolated.js"],
+      "matches": [
+        "https://xiaohongshu.com/*",
+        "https://www.xiaohongshu.com/*",
+        "https://*.xiaohongshu.com/*"
+      ],
+      "js": ["bridge.js"],
       "run_at": "document_start"
     },
     {
-      "matches": ["https://x.com/*", "https://pro.x.com/*"],
-      "js": ["lib/x-net-hook.js", "lib/x-client-transaction.js", "lib/grok-reply.js", "lib/long-image-viewer.js", "lib/image-viewer.js", "src/premium/license/gate.js", "src/premium/content-filter/rules.js", "src/premium/content-filter/filter.js", "src/premium/rate-filter/filter.js", "content.js", "starchart.js"],
+      "matches": [
+        "https://xiaohongshu.com/*",
+        "https://www.xiaohongshu.com/*",
+        "https://*.xiaohongshu.com/*"
+      ],
+      "js": ["lib/xhs-net-hook.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_start",
       "world": "MAIN"

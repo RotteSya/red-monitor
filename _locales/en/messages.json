@@ -1,475 +1,72 @@
 {
-  "extName": {
-    "message": "X Viral Monitor",
-    "description": "Extension name"
-  },
-  "extDescription": {
-    "message": "Velocity badges, long-image reader, Markdown copy, supporter chart, and Grok reply drafts — all on X. No data collection.",
-    "description": "Extension description"
-  },
-  "popupSubtitle": {
-    "message": "Real-time impression velocity on X tweets"
-  },
-  "tierNormal": {
-    "message": "Normal"
-  },
-  "tierTrending": {
-    "message": "Trending"
-  },
-  "tierViral": {
-    "message": "Viral"
-  },
-  "hoverHint": {
-    "message": "Hover badges to see views, likes, RT, replies, bookmarks and viral score."
-  },
-  "thresholdTrending": {
-    "message": "🚀 Trending threshold"
-  },
-  "thresholdViral": {
-    "message": "🔥 Viral threshold"
-  },
-  "btnSave": {
-    "message": "Save"
-  },
-  "btnReset": {
-    "message": "Reset"
-  },
-  "btnAdd": {
-    "message": "Add"
-  },
-  "btnDelete": {
-    "message": "Delete"
-  },
-  "flashSaved": {
-    "message": "Saved ✓"
-  },
-  "flashReset": {
-    "message": "Reset ✓"
-  },
-  "featureCopyMdTitle": {
-    "message": "📋 Copy tweet as Markdown"
-  },
-  "featureCopyMdDesc": {
-    "message": "Adds a \"Copy as Markdown\" entry at the bottom of X's native share menu. Copies the tweet text, author, link and date in Markdown format."
-  },
-  "featureLeaderboardTitle": {
-    "message": "📊 Velocity leaderboard"
-  },
-  "featureLeaderboardDesc": {
-    "message": "Draggable floating panel showing the fastest-growing tweets visible on the current page. Click a row to scroll to the tweet."
-  },
-  "featureLeaderboardShowTop": {
-    "message": "Show top"
-  },
-  "featureLeaderboardTweets": {
-    "message": "tweets"
-  },
-  "featureLeaderboardColsHint": {
-    "message": "Drag to reorder · check to show"
-  },
-  "popupColRank": {
-    "message": "Rank"
-  },
-  "popupColIcon": {
-    "message": "Tier icon"
-  },
-  "popupColHandle": {
-    "message": "Username"
-  },
-  "popupColPreview": {
-    "message": "Tweet preview"
-  },
-  "popupColViews": {
-    "message": "Views"
-  },
-  "popupColVelocity": {
-    "message": "Velocity"
-  },
-  "contentViews": {
-    "message": "Views"
-  },
-  "contentLikes": {
-    "message": "Likes"
-  },
-  "contentRetweets": {
-    "message": "Retweets"
-  },
-  "contentReplies": {
-    "message": "Replies"
-  },
-  "contentBookmarks": {
-    "message": "Bookmarks"
-  },
-  "contentVelocity": {
-    "message": "Velocity"
-  },
-  "contentViralScore": {
-    "message": "Viral Score"
-  },
-  "contentPosted": {
-    "message": "Posted"
-  },
-  "contentLeaderboardTitle": {
-    "message": "Hot on this page"
-  },
-  "contentLeaderboardDragToMove": {
-    "message": "Drag to move"
-  },
-  "contentLeaderboardBackToPrevious": {
-    "message": "Return to previous scroll position"
-  },
-  "contentLeaderboardTotalViews": {
-    "message": "Total views"
-  },
-  "contentCopyMdLabel": {
-    "message": "Copy as Markdown"
-  },
-  "contentCopyMdDone": {
-    "message": "Copied!"
-  },
-  "contentCopyMdAttribution": {
-    "message": "via X Viral Monitor"
-  },
-  "contentCopyMdNoTweetFound": {
-    "message": "No tweet found"
-  },
-  "contentCopyMdCopyFailed": {
-    "message": "Copy failed"
-  },
-  "contentFallbackTweetLabel": {
-    "message": "tweet"
-  },
-  "flashColumnsSaved": {
-    "message": "Columns saved ✓"
-  },
-  "flashLeaderboardOn": {
-    "message": "Leaderboard ON ✓"
-  },
-  "flashLeaderboardOff": {
-    "message": "Leaderboard OFF"
-  },
-  "flashCopyMdOn": {
-    "message": "Copy-as-Markdown ON ✓"
-  },
-  "flashCopyMdOff": {
-    "message": "Copy-as-Markdown OFF"
-  },
+  "extName": { "message": "Red Viral Monitor" },
+  "extDescription": { "message": "Heat badges, page leaderboard, and Markdown copy tools for Xiaohongshu Web" },
+  "popupSubtitle": { "message": "Xiaohongshu Web heat helper" },
+  "tabSettings": { "message": "Settings" },
+  "tabLeaderboard": { "message": "Board" },
+  "tabAbout": { "message": "About" },
+  "settingsThresholdsTitle": { "message": "Heat thresholds" },
+  "trendingLabel": { "message": "Rising" },
+  "viralLabel": { "message": "Viral" },
+  "badgeStyleLabel": { "message": "Badge style" },
+  "badgeStylePill": { "message": "Badge" },
+  "badgeStyleInline": { "message": "Compact" },
+  "featureCopyMdLabel": { "message": "Copy Markdown" },
+  "featureCopyMdHint": { "message": "Floating note button" },
+  "saveButton": { "message": "Save" },
+  "resetButton": { "message": "Reset" },
+  "displayTitle": { "message": "Display" },
+  "languageLabel": { "message": "Language" },
+  "languageAuto": { "message": "Browser" },
+  "languageZh": { "message": "中文" },
+  "languageEn": { "message": "English" },
+  "languageJa": { "message": "日本語" },
+  "themeLabel": { "message": "Theme" },
+  "leaderboardTitle": { "message": "Heat board" },
+  "featureLeaderboardLabel": { "message": "Page board" },
+  "featureLeaderboardHint": { "message": "Sorted by interaction speed" },
+  "topCountLabel": { "message": "Count" },
+  "columnsTitle": { "message": "Columns" },
+  "columnRank": { "message": "Rank" },
+  "columnIcon": { "message": "State" },
+  "columnAuthor": { "message": "Author" },
+  "columnPreview": { "message": "Title" },
+  "columnHeat": { "message": "Heat" },
+  "columnVelocity": { "message": "Speed" },
+  "resetLeaderboardPosition": { "message": "Reset board position" },
+  "featureLeaderboardResetDone": { "message": "Reset" },
+  "aboutTitle": { "message": "Xiaohongshu only" },
+  "aboutBody": { "message": "This version only runs on xiaohongshu.com and focuses on note heat, page ranking, and Markdown copy." },
+  "flashSaved": { "message": "Saved" },
+  "flashReset": { "message": "Reset" },
+  "flashCopyMdOn": { "message": "Copy enabled" },
+  "flashCopyMdOff": { "message": "Copy disabled" },
+  "flashBadgeStyleSaved": { "message": "Style saved" },
+  "flashLeaderboardOn": { "message": "Board enabled" },
+  "flashLeaderboardOff": { "message": "Board disabled" },
   "flashShowingTop": {
-    "message": "Showing top $COUNT$ ✓",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
+    "message": "Showing top $COUNT$",
+    "placeholders": { "count": { "content": "$1" } }
   },
-  "contentStarChartMenuLabel": {
-    "message": "Thank-You Star Chart"
-  },
-  "contentStarChartAttribution": {
-    "message": "via X Viral Monitor"
-  },
-  "contentStarChartTitle": {
-    "message": "Thank-You Star Chart"
-  },
-  "contentStarChartLoading": {
-    "message": "Loading supporters..."
-  },
-  "contentStarChartProgress": {
-    "message": "{{COUNT}} supporters loaded"
-  },
-  "contentStarChartRateLimited": {
-    "message": "Hit rate limit, waiting {{SECONDS}}s..."
-  },
-  "contentStarChartDone": {
-    "message": "Done — {{COUNT}} supporters"
-  },
-  "contentStarChartDoneTruncated": {
-    "message": "Done — {{COUNT}} supporters (capped, more available)"
-  },
-  "contentStarChartError": {
-    "message": "Could not load supporters: {{REASON}}"
-  },
-  "contentStarChartNoTweetFound": {
-    "message": "Could not identify the tweet"
-  },
-  "contentStarChartModuleNotLoaded": {
-    "message": "Star chart not available — please reload the page"
-  },
-  "contentStarChartLegendRT": {
-    "message": "Retweet"
-  },
-  "contentStarChartLegendQuote": {
-    "message": "Quote"
-  },
-  "contentStarChartLegendBoth": {
-    "message": "Both"
-  },
-  "contentStarChartClose": {
-    "message": "Close"
-  },
-  "contentStarChartStatRetweets": {
-    "message": "Retweets"
-  },
-  "contentStarChartStatQuotes": {
-    "message": "Quotes"
-  },
-  "contentStarChartStatSupporters": {
-    "message": "Supporters"
-  },
-  "contentStarChartStatSpan": {
-    "message": "Quote span"
-  },
-  "contentStarChartSearchPlaceholder": {
-    "message": "Search name or handle..."
-  },
-  "contentStarChartRiverTitle": {
-    "message": "Quote River"
-  },
-  "contentStarChartRiverEmpty": {
-    "message": "No quotes yet"
-  },
-  "contentStarChartEmpty": {
-    "message": "No supporters found for this tweet"
-  },
-  "contentStarChartReset": {
-    "message": "Reset view"
-  },
-  "popupStarChartLabel": {
-    "message": "Thank-You Star Chart"
-  },
-  "popupStarChartHint": {
-    "message": "Adds a star-chart option to the share menu of any tweet."
-  },
-  "flashStarChartOn": {
-    "message": "Star chart enabled"
-  },
-  "flashStarChartOff": {
-    "message": "Star chart disabled"
-  },
-  "featureBookmarkCountTitle": {
-    "message": "🔖 Show bookmark count"
-  },
-  "featureBookmarkCountDesc": {
-    "message": "Display the bookmark count next to each tweet's bookmark button on the timeline."
-  },
-  "flashBookmarkCountOn": {
-    "message": "Bookmark count enabled"
-  },
-  "flashBookmarkCountOff": {
-    "message": "Bookmark count disabled"
-  },
-  "contentStarChartTitleLabel": {
-    "message": "VELOCITY MONITOR"
-  },
-  "contentStarChartHeroEyebrow": {
-    "message": "THANK YOU FOR CARRYING THIS POST FURTHER"
-  },
-  "contentStarChartHeroTitle": {
-    "message": "Every light is a hand passing the post along."
-  },
-  "contentStarChartStatsSectionTitle": {
-    "message": "Overview"
-  },
-  "contentStarChartPeopleSectionTitle": {
-    "message": "Supporters"
-  },
-  "contentStarChartFilterAll": {
-    "message": "All"
-  },
-  "contentStarChartFilterRetweet": {
-    "message": "Retweet"
-  },
-  "contentStarChartFilterQuote": {
-    "message": "Quote"
-  },
-  "contentStarChartFilterBoth": {
-    "message": "Both"
-  },
-  "contentStarChartRiverPrev": {
-    "message": "Previous quote"
-  },
-  "contentStarChartRiverNext": {
-    "message": "Next quote"
-  },
-  "popupGrokPromptTitle": {
-    "message": "Grok comment prompt"
-  },
-  "popupGrokPromptHint": {
-    "message": "Use [推文内容] where the source tweet should be inserted. Click AI Generate in a reply box, choose a template, then pick one generated option to fill the reply."
-  },
-  "popupGrokTempChatLabel": {
-    "message": "Use temporary chat (don't pollute Grok history)"
-  },
-  "flashGrokTempChatOn": {
-    "message": "Temporary chat enabled ✓"
-  },
-  "flashGrokTempChatOff": {
-    "message": "Temporary chat disabled"
-  },
-  "flashGrokPromptSaved": {
-    "message": "Grok prompt saved ✓"
-  },
-  "flashGrokPromptReset": {
-    "message": "Grok prompt reset ✓"
-  },
-  "badgeStyleLabel": {
-    "message": "🏷️ Badge style"
-  },
-  "badgeStylePillSolid": {
-    "message": "Pill solid"
-  },
-  "badgeStyleInlineClassic": {
-    "message": "Inline classic"
-  },
-  "flashBadgeStyleSaved": {
-    "message": "Badge style saved ✓"
-  },
-  "proBannerFree":       { "message": "Free" },
-  "proBannerPro":        { "message": "Pro active" },
-  "proBannerTrial":      { "message": "Trial — $DAYS$ days left", "placeholders": { "DAYS": { "content": "$1" } } },
-  "proBannerTrialOne":   { "message": "Trial — 1 day left" },
-  "proNudgeTrialEnd":    { "message": "Trial ends in $DAYS$ days — upgrade Pro to keep filtering.", "placeholders": { "DAYS": { "content": "$1" } } },
-  "proNudgeTrialEndOne": { "message": "Trial ends in 1 day — upgrade Pro to keep filtering." },
-  "proCtaMonthly":       { "message": "Monthly · $$2.9 / mo" },
-  "proCtaAnnual":        { "message": "Annual · $$29 / yr (save 17%)" },
-  "proActivateLabel":    { "message": "Already bought? Enter your license key:" },
-  "proActivatePlaceholder": { "message": "creem-XXXXX..." },
-  "proActivateBtn":      { "message": "Activate" },
-  "proActivating":       { "message": "Activating…" },
-  "proActivatedOk":      { "message": "License activated. Reload x.com to apply." },
-  "proActErrFormat":     { "message": "License key format is invalid." },
-  "proActErrWorkerUnset":{ "message": "License proxy not configured yet — contact support." },
-  "proActErrGeneric":    { "message": "Activation failed: $ERROR$", "placeholders": { "ERROR": { "content": "$1" } } },
-  "proLicenseField":     { "message": "License" },
-  "proActivatedField":   { "message": "Activated" },
-  "proExpiresField":     { "message": "Renews" },
-  "proManageBtn":        { "message": "Manage subscription" },
-  "proDeactivateBtn":    { "message": "Deactivate" },
-  "proDeactivating":     { "message": "Deactivating…" },
-  "proDeactivatedOk":    { "message": "Deactivated." },
-  "proDeactivateErr":    { "message": "Deactivation failed." },
-  "rfTitle":         { "message": "Velocity filter (Pro)" },
-  "rfLockedHint":    { "message": "Upgrade Pro to unlock the velocity filter." },
-  "rfEnabled":       { "message": "Hide low-velocity tweets" },
-  "rfScopeLegend":   { "message": "Scope" },
-  "rfScopeHome":     { "message": "Home" },
-  "rfScopeList":     { "message": "Lists" },
-  "rfScopeProfile":  { "message": "Profiles" },
-  "rfScopeStatus":   { "message": "Tweet detail" },
-  "rfShortLegend":   { "message": "Short tweets — keep if either threshold passes" },
-  "rfLongLegend":    { "message": "X Articles (long-form) — keep if either threshold passes" },
-  "rfRatePerMin":    { "message": "views / min ≥" },
-  "rfAbsoluteViews": { "message": "total views ≥" },
-  "rfRuleHint":      { "message": "Rule: keep if (views/min > rate threshold) OR (total views > absolute threshold). Otherwise hide." },
-  "rfReset":         { "message": "Reset defaults" },
-  "rfSave":          { "message": "Save" },
-  "rfSavedOk":       { "message": "Saved ✓" },
-  "rfResetOk":       { "message": "Reset ✓" },
-  "featureLeaderboardResetPos":  { "message": "Reset leaderboard position" },
-  "featureLeaderboardResetDone": { "message": "Reset — please refresh the page." },
-  "accRateFilter":    { "message": "Velocity filter" },
-  "accRateFilterSub": { "message": "Pro" },
-  "accLeaderboard":   { "message": "Leaderboard & badges" },
-  "accPro":           { "message": "License / Pro" },
-  "accOther":         { "message": "Other features & settings" },
-  "heroTrialDaysLeft": { "message": "$DAYS$ days left in trial", "placeholders": { "DAYS": { "content": "$1" } } },
-  "heroTrialDayOne":   { "message": "1 day left in trial" },
-  "heroProActive":     { "message": "Active · thanks for supporting!" },
-  "heroFreeTagline":   { "message": "Upgrade for the velocity filter and more" },
-  "heroCtaUpgradeAnnual":  { "message": "Upgrade to Pro · $$29/yr (save 17%)" },
-  "heroCtaUpgradeMonthly": { "message": "Or pay monthly — $$2.9/mo" },
-  "heroActivateExistingLink": { "message": "Activate existing license" },
-  "cardFreeFeaturesTitle":  { "message": "Free features" },
-  "cardProFeaturesTitle":   { "message": "Pro features" },
-  "cardProFeaturesSub":     { "message": "Unlocked during trial" },
-  "featureBadgeLabel":       { "message": "Velocity badges" },
-  "featureLeaderboardLabel": { "message": "Leaderboard panel" },
-  "featureCopyMdLabel":      { "message": "Copy as Markdown" },
-  "featureRateFilterLabel":  { "message": "Velocity filter" },
-  "featureColorCardLabel":   { "message": "Custom color palette" },
-  "featureWebhookLabel":     { "message": "Private hot-tweet monitor" },
-  "featureBarkLabel":        { "message": "Bark notifications" },
-  "chipEnabled":     { "message": "Enabled" },
-  "chipComingSoon":  { "message": "Coming soon" },
-  "btnConfigure":    { "message": "Configure →" },
-  "btnBack":         { "message": "Back" },
-  "btnCancel":       { "message": "Cancel" },
-  "footerPoweredBy": { "message": "Powered by" },
-  "toastM2Hint":     { "message": "Stay tuned — coming in v1.8.0" },
-  "activateTitle":   { "message": "Activate existing license" },
-  "advBadgeThresholdsTitle": { "message": "Badge thresholds & style" },
-  "advLeaderboardTitle":     { "message": "Leaderboard details" },
-  "advOtherFeaturesTitle":   { "message": "Other features" },
-  "advGrokShortTitle":       { "message": "Grok reply — short tweet template" },
-  "advGrokArticleTitle":     { "message": "Grok reply — article template" },
-  "tabPro":         { "message": "Pro" },
-  "tabFilter":      { "message": "Filter" },
-  "tabLeaderboard": { "message": "Leaderboard" },
-  "tabAbout":       { "message": "About" },
-  "rfSubShort":     { "message": "Short tweet" },
-  "rfSubLong":      { "message": "X Article (long)" },
-  "comingListTitle":{ "message": "Coming in v1.8.0" },
-  "chipTierFree":   { "message": "Free" },
-  "chipTierTrial":  { "message": "Trial" },
-  "chipTierPro":    { "message": "Pro" },
-  "chipTrialDays":  { "message": "$DAYS$ days left", "placeholders": { "DAYS": { "content": "$1" } } },
-  "chipTrialOne":   { "message": "1 day left" },
-  "themeLabel":     { "message": "Theme" },
-  "themeSwitchToDark":  { "message": "Switch to dark" },
-  "themeSwitchToLight": { "message": "Switch to light" },
-  "themeFollowSystem":  { "message": "Following system" },
-  "languageLabel":      { "message": "Language" },
-  "languageHint":       { "message": "Controls the popup, page overlays, and default Grok prompt language." },
-  "languageAuto":       { "message": "Auto / follow browser" },
-  "languageZh":         { "message": "中文" },
-  "languageEn":         { "message": "English" },
-  "languageJa":         { "message": "日本語" },
-  "grokShortTemplateLabel": { "message": "Tweet template (short posts, <600 chars)" },
-  "grokArticleTemplateLabel": { "message": "Article template (used for X Articles / long posts, ≥600 chars)" },
-  "grokArticleTemplateHint": { "message": "This template group is used automatically when replying to X long-form posts or Articles." },
-  "grokDefaultTemplateName": { "message": "Natural replies" },
-  "grokCustomTemplateName": { "message": "Template $N$", "placeholders": { "N": { "content": "$1" } } },
-  "grokArticleFallbackName": { "message": "Article template" },
-  "grokArticleCustomTemplateName": { "message": "Article template $N$", "placeholders": { "N": { "content": "$1" } } },
-  "contentLbHotOnly":      { "message": "Hot only" },
-  "contentLbHotProTitle":  { "message": "Velocity filter is a Pro feature" },
-  "contentLbHotProSub":    { "message": "Hide low-views tweets, keep what's actually spreading" },
-  "contentLbHotMonthly":   { "message": "Monthly $$2.9" },
-  "contentLbHotAnnual":    { "message": "Annual $$29 (save 17%)" },
-  "cfTitle":        { "message": "Content filter" },
-  "cfLockedHint":   { "message": "Upgrade to Pro to unlock content filtering." },
-  "cfEnabled":      { "message": "Hide adult / ad / funnel replies" },
-  "cfLevel":        { "message": "Filter strength" },
-  "cfLevelLight":   { "message": "Light" },
-  "cfLevelStandard":{ "message": "Standard" },
-  "cfLevelStrict":  { "message": "Strict" },
-  "cfRuleCounts":   { "message": "$COUNT$ built-in rules active, $CUSTOM$ custom.", "placeholders": { "COUNT": { "content": "$1" }, "CUSTOM": { "content": "$2" } } },
-  "cfScopeHint":    { "message": "Only applies to reply areas on tweet detail pages. Home, search, profiles, and the main tweet are not filtered." },
-  "cfCustomTitle":  { "message": "Custom rules" },
-  "cfWhitelistTitle": { "message": "Whitelist / blacklist settings" },
-  "cfValue":        { "message": "Keyword / regex / domain" },
-  "cfAddRule":      { "message": "Add rule" },
-  "cfDeleteRule":   { "message": "Delete rule" },
-  "cfCustomEmpty":  { "message": "No custom rules yet." },
-  "cfWhitelistFollowing": { "message": "Always allow accounts you follow" },
-  "cfWhitelistHandles": { "message": "Whitelisted handles" },
-  "cfBlacklistHandles": { "message": "Blocked handles" },
-  "cfWhitelistDomains": { "message": "Whitelisted domains" },
-  "cfAllRulesTitle": { "message": "All rules" },
-  "cfBuiltinRule":  { "message": "Built-in" },
-  "cfCustomRule":   { "message": "Custom" },
-  "cfNoRules":      { "message": "No rules." },
-  "cfRuleHint":     { "message": "Rules run locally in your browser. Nothing is uploaded. Whitelist runs first, then hard rules and severity thresholds." },
-  "cfRulesSourceBundled": { "message": "Rules source: bundled" },
-  "cfRulesSourceRemote":  { "message": "Rules source: remote · updated $AGO$", "placeholders": { "AGO": { "content": "$1" } } },
-  "cfRulesJustNow":       { "message": "just now" },
-  "cfRulesMinutesAgo":    { "message": "$N$m ago", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesHoursAgo":      { "message": "$N$h ago", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesDaysAgo":       { "message": "$N$d ago", "placeholders": { "N": { "content": "$1" } } },
-  "cfRulesRefresh":       { "message": "Check for updates" },
-  "cfRulesRefreshing":    { "message": "Fetching…" },
-  "cfRulesRefreshOk":     { "message": "Rules updated." },
-  "cfRulesRefreshErr":    { "message": "Fetch failed, please retry later." },
-  "cfAutoSaved":          { "message": "Auto-saved" },
-  "advAppearanceTitle": { "message": "Appearance" }
+  "flashColumnsSaved": { "message": "Columns saved" },
+  "flashLanguageSaved": { "message": "Language saved" },
+  "flashThemeSaved": { "message": "Theme saved" },
+  "contentLikes": { "message": "Likes" },
+  "contentCollects": { "message": "Collects" },
+  "contentComments": { "message": "Comments" },
+  "contentShares": { "message": "Shares" },
+  "contentHeat": { "message": "Heat" },
+  "contentVelocity": { "message": "Heat speed" },
+  "contentEstimated": { "message": "estimated" },
+  "contentPosted": { "message": "Posted" },
+  "contentAuthor": { "message": "Author" },
+  "contentSource": { "message": "Source" },
+  "contentLeaderboardTitle": { "message": "Xiaohongshu Heat Board" },
+  "contentLeaderboardDragToMove": { "message": "Drag to move the board" },
+  "contentLeaderboardEmpty": { "message": "Waiting for notes" },
+  "contentCopyMdLabel": { "message": "Copy note as Markdown" },
+  "contentCopyMdDone": { "message": "Markdown copied" },
+  "contentCopyMdNoNoteFound": { "message": "No note found" },
+  "contentCopyMdCopyFailed": { "message": "Copy failed" },
+  "contentFallbackNoteLabel": { "message": "Xiaohongshu note" }
 }

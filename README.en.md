@@ -1,131 +1,32 @@
-# X Viral Monitor
+# Red Viral Monitor
 
-[中文说明](README.md)
+[中文](README.md)
 
-Chrome extension that displays real-time impression velocity on every tweet in your X (Twitter) timeline.
+Red Viral Monitor is a Manifest V3 browser extension built only for Xiaohongshu Web. It no longer matches or loads on X/Twitter.
 
-[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue?logo=googlechrome)](https://chromewebstore.google.com/detail/x-viral-monitor/dkplofpecmjmbhgjgleeflcnfgfkdfpd)
-[![Manifest V3](https://img.shields.io/badge/Manifest-V3-green)](https://chromewebstore.google.com/detail/x-viral-monitor/dkplofpecmjmbhgjgleeflcnfgfkdfpd)
+## Features
 
-## What it does
+| Feature | Surface | Notes |
+|---|---|---|
+| Heat badges | Note cards / note detail | Scores likes, collects, comments, and shares into interaction heat and hourly speed |
+| Page leaderboard | Draggable floating panel | Ranks notes captured on the current page by interaction speed |
+| Markdown copy | Floating note button | Copies title, body, images, metrics, and source URL |
+| DOM fallback | Xiaohongshu layout drift | Extracts visible note title, author, links, images, and metrics when API data is partial |
 
-- Shows impression velocity (views/hour) on each tweet in your timeline
-- **Two badge styles** — pill solid (colored background) or inline classic (plain text), switchable in the popup
-- Color-coded badges indicate traffic levels at a glance
-- Hover tooltip with detailed metrics (views, likes, retweets, replies, bookmarks, viral score)
-- Works across all timeline tabs (For You, Following, Lists, etc.)
-- Floating **velocity leaderboard** — draggable panel ranking visible tweets by velocity (toggle in popup, off by default; columns are user-configurable)
-- Copy any tweet as Markdown from the share menu
-- Generate a Thank-You Star Chart for any tweet — animated visualization of every retweeter and quoter
-- **AI reply generator** in the reply composer — invokes X's built-in Grok directly (no API key needed). 4 default prompt templates (default / short Chinese / sharp opinion / Tieba veteran tone); long-form posts auto-switch to a deeper-reasoning template set
-- Supports English, Chinese, and Japanese
-- **Standalone userscript** — don't want the full extension? A lightweight Tampermonkey script is available in `userscript/` with badges + leaderboard + settings panel
+## Development Install
 
-## Open Source and Official Builds
-
-This repository contains the full X Viral Monitor source code, including the Pro feature gates and license logic. The code is released under the MIT license, so you can audit, modify, and build it yourself.
-
-The Chrome Web Store version is the **official build**. It provides one-click installation, automatic updates, license activation, and maintainer support. Builds loaded manually from GitHub are community/self-built versions provided "as-is" under the MIT license; they do not include Chrome Web Store automatic updates or an official support commitment.
-
-### Free vs Pro
-
-| Free features | Pro / trial unlocks |
-|---|---|
-| Velocity badges, velocity leaderboard, bookmark count display | Velocity filter: hide low-velocity tweets by views/min and total views |
-| Image viewer enhancements and long-image reading | Separate thresholds for short tweets and long-form articles |
-| Content filtering, remote rule updates, custom rules | Scope controls for Home, Lists, Profiles, and Tweet detail pages |
-| AI reply drafts, copy as Markdown, Thank-You Star Chart | Future advanced monitoring, notification, and automation features |
-
-The Pro license unlocks premium behavior in the official build. The client code is not treated as a DRM boundary; the paid value is the official build, automatic updates, license service, support, and ongoing maintenance.
-
-### Velocity Tiers
-
-| Icon | Color | Velocity | Meaning |
-|------|-------|----------|---------|
-| 🌱 | Green | < 1,000/h | Normal |
-| 🚀 | Orange | 1,000 - 10,000/h | Trending |
-| 🔥 | Red | ≥ 10,000/h | Viral |
-
-### AI reply generation (Grok)
-
-A **✦ AI 生成** button appears in every reply composer. Click it to:
-
-1. Pick a prompt template (tweets vs long-form articles auto-detected; ≥600 chars routes to the article template set)
-2. Watch candidate replies stream in (you can pick the first one as soon as it appears, no need to wait for all 10)
-3. Click any candidate → it's inserted into X's reply editor and the submit button activates
-
-**No API key or third-party login required.** The extension piggybacks on the Grok session already in your X tab (`x.com/i/grok`); the entire request runs locally in your browser, no external service in the path.
-
-Nested-reply aware: when replying to a comment underneath someone else's tweet, the prompt context is composed as 「original tweet + the reply being responded to」 so Grok sees the full conversation, not just an isolated comment.
-
-Templates can be edited in the extension popup. **Tweet templates** and **article templates** are stored separately. The `[推文内容]` placeholder gets replaced with the source text; if your custom prompt has no placeholder, the source is prepended automatically.
-
-## Install
-
-### Chrome Extension (recommended)
-
-**Chrome Web Store:**
-[Install X Viral Monitor](https://chromewebstore.google.com/detail/x-viral-monitor/dkplofpecmjmbhgjgleeflcnfgfkdfpd)
-
-**Manual install (latest unpublished build):**
-
-1. Download the latest release zip from [Releases](../../releases)
-2. Unzip the downloaded file
-3. Open Chrome and go to `chrome://extensions/`
-4. Toggle **Developer mode** on (top right corner)
-5. Click **Load unpacked** (top left)
-6. Select the unzipped folder and confirm
-
-### Userscript (lightweight)
-
-Only need velocity badges and the leaderboard? Use the standalone userscript:
-
-1. Install [Tampermonkey](https://www.tampermonkey.net/)
-2. Open [`userscript/x-viral-monitor.user.js`](userscript/x-viral-monitor.user.js) and click "Raw" to install
-3. Access settings via the Tampermonkey menu
-
-## How it works
-
-The extension intercepts X's GraphQL API responses to extract tweet metrics (views, likes, retweets, replies, bookmarks, post time). It calculates the average impression velocity (`total views / hours since posted`) and renders an inline badge next to each tweet's action buttons.
-
-For tweets not captured by the initial intercept, it falls back to fetching individual tweet details via the TweetDetail API.
-
-### Viral Score (shown in tooltip)
-
-A composite 0-100 score based on four weighted dimensions:
-
-| Dimension | Weight | Max condition |
-|-----------|--------|---------------|
-| Velocity | 40% | 50,000/h |
-| Engagement rate | 25% | 10% |
-| Retweet ratio | 20% | RT/Like = 50% |
-| Bookmark ratio | 15% | Bookmark/Like = 30% |
-
-## Acknowledgements
-
-The Thank-You Star Chart visualization is adapted from
-[London-Chen/Thank-you-star-chart](https://github.com/London-Chen/Thank-you-star-chart) (MIT License) —
-orbital field math, side-panel layout, and color palette ported from that project.
-
-## Project Structure
-
+```bash
+npm install
+npm run build:dist
 ```
-├── _locales/          # i18n (en / zh_CN / ja)
-├── icons/             # Extension icons
-├── lib/               # Runtime libraries (network hooks, Grok integration, etc.)
-├── userscript/        # Standalone Tampermonkey script
-├── release/           # Build artifacts (zip / patch, gitignored)
-├── docs/              # Documentation (Chrome Web Store config, etc.)
-├── scripts/           # Dev utility scripts
-├── store-assets/      # Web Store assets
-├── tests/             # Tests
-├── bridge.js          # Extension ↔ page communication bridge
-├── content.js         # Main content script (MAIN world)
-├── popup.html/js      # Extension popup settings UI
-├── starchart.js       # Thank-You Star Chart module
-├── styles.css         # Injected page styles
-└── manifest.json      # Chrome extension manifest
-```
+
+Open `chrome://extensions/` in Chrome or Edge, enable Developer Mode, and load the generated `dist/` directory.
+
+## How It Works
+
+The extension passively observes `fetch` / `XMLHttpRequest` responses on Xiaohongshu pages and reads note data from `/api/sns/web/` payloads. It does not upload note content to external services and does not mutate Xiaohongshu requests.
+
+When API data is incomplete, `content.js` scans visible note DOM as a fallback.
 
 ## License
 

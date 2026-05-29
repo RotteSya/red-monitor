@@ -12,20 +12,17 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = resolve(root, 'dist');
 
-// Same canonical 18-file shipping set used by the v1.6.13 release zip,
-// plus the M1 premium tree under src/.
+// Xiaohongshu-only MV3 extension shipping set. Keep this list narrow so
+// legacy X/Twitter modules in the source tree are not copied into dist/.
 const ITEMS = [
   '_locales',
   'icons',
-  'lib',
-  'src',
+  'lib/xhs-net-hook.js',
   'bridge.js',
   'content.js',
   'manifest.json',
   'popup.html',
   'popup.js',
-  'popup-dashboard.js', // mock A tab router (also handles theme + nav events)
-  'starchart.js',
   'styles.css',
 ];
 
@@ -57,6 +54,7 @@ function main() {
     if (st.isDirectory()) {
       cpSync(src, dst, { recursive: true });
     } else {
+      mkdirSync(dirname(dst), { recursive: true });
       cpSync(src, dst);
     }
     copied += 1;

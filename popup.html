@@ -3,835 +3,397 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>X Viral Monitor</title>
+  <title>Red Viral Monitor</title>
   <style>
-    /*
-     * Tabs layout (mock A) — shadcn-style dark popup.
-     * Locked 2026-05-19 (3rd UI pivot after Accordion C / Dashboard D).
-     * Top header w/ tier chip + 4 main tabs (Pro / Filter / Leaderboard /
-     * About). Filter tab nests Short/Long sub-tabs.
-     */
-    /* Light theme (default, warm sand palette from v1.6.x) */
     :root {
-      --bg:        #f4efe5;
-      --surface:   #fffcf6;
-      --surface-2: #f5ede1;
-      --surface-3: #e9dcc5;
-      --border:    rgba(86, 60, 34, 0.18);
-      --border-hi: rgba(86, 60, 34, 0.32);
-      --text:      #24180f;
-      --text-2:    #4a3a2e;
-      --muted:     #6e5b4d;
-      --accent:    #bf5a2a;
-      --accent-2:  #a04017;
-      --accent-hi: #d97540;
-      --orange:    #c2410c;
-      --ok:        #2a7f3f;
-      --warn:      #b8782e;
-      --danger:    #b14a2a;
-      --radius:    10px;
-      --radius-sm: 8px;
-      --radius-xs: 6px;
-      --card:           var(--surface);
-      --line:           var(--border);
-      --accent-strong:  var(--accent-hi);
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-2: #f1f5f9;
+      --border: #d8dee8;
+      --text: #111827;
+      --muted: #667085;
+      --accent: #e11d48;
+      --accent-2: #be123c;
+      --ok: #0f766e;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
     }
-    /* Dark theme (shadcn slate-950 + cyan-500, opt-in via toggle) */
     body[data-theme="dark"] {
-      --bg:        #020617;
-      --surface:   #0f172a;
-      --surface-2: #1e293b;
-      --surface-3: #334155;
-      --border:    #1e293b;
-      --border-hi: #334155;
-      --text:      #f8fafc;
-      --text-2:    #cbd5e1;
-      --muted:     #64748b;
-      --accent:    #06b6d4;
-      --accent-2:  #0891b2;
-      --accent-hi: #22d3ee;
-      --orange:    #f97316;
-      --ok:        #4ade80;
-      --warn:      #fbbf24;
-      --danger:    #f87171;
+      --bg: #111827;
+      --surface: #1f2937;
+      --surface-2: #263244;
+      --border: #374151;
+      --text: #f9fafb;
+      --muted: #a7b0c0;
+      --accent: #fb7185;
+      --accent-2: #f43f5e;
+      --ok: #2dd4bf;
+      --warn: #f59e0b;
+      --danger: #f87171;
+      --shadow: 0 12px 34px rgba(0, 0, 0, 0.36);
     }
-    /* CTA buttons inherit accent contrast; both themes work because text
-       color #0b1120 is dark (cyan-500 / bf5a2a both pass AA). Override
-       per-theme if needed. */
-    * { box-sizing: border-box; margin: 0; }
-    html, body { scrollbar-gutter: stable; }
+    * { box-sizing: border-box; }
     body {
-      width: 360px;            /* fixed-width popup per mock A (polish #1) */
+      width: 360px;
       min-width: 360px;
-      max-width: 360px;
-      font-family: "Inter", "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
-      font-size: 13px;
-      color: var(--text);
+      margin: 0;
       background: var(--bg);
+      color: var(--text);
+      font: 13px/1.45 Inter, Avenir Next, PingFang SC, Microsoft YaHei, sans-serif;
     }
-    /* Polish #1 (post-mock A): keep scrollbar gutter stable so popup doesn't
-       jitter 1-2px when tab content height changes. Plus slim custom
-       scrollbar matching the theme. */
-    ::-webkit-scrollbar              { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track        { background: transparent; }
-    ::-webkit-scrollbar-thumb        { background: var(--surface-3); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover  { background: var(--muted); }
-    .popup { padding: 14px; }
-
-    /* === Header === */
+    button, input, select {
+      font: inherit;
+    }
+    .popup {
+      padding: 14px;
+    }
     .app-header {
-      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
     }
     .app-logo {
-      width: 28px; height: 28px; border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    .app-title {
+      min-width: 0;
+      flex: 1;
+    }
+    .name {
       display: block;
-      object-fit: cover;
-      box-shadow: 0 1px 0 rgba(255,255,255,.14) inset, 0 6px 14px rgba(0,0,0,.18);
-    }
-    .app-title { flex: 1; }
-    .app-title .name { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
-    .app-title .sub  { display: block; font-size: 10px; color: var(--muted); }
-
-    #tier-chip {
-      font-size: 11px; padding: 5px 12px; border-radius: 999px;
-      font-weight: 600; letter-spacing: 0.02em;
-      border: 1px solid transparent; white-space: nowrap;
-      display: inline-flex; align-items: center; gap: 4px;
-    }
-    body[data-tier="free"]  #tier-chip { color: var(--muted); border-color: var(--border-hi); background: var(--surface); }
-    body[data-tier="trial"] #tier-chip { color: var(--orange); border-color: rgba(194, 65, 12, 0.45); background: rgba(194, 65, 12, 0.10); }
-    body[data-tier="pro"]   #tier-chip { color: var(--ok); border-color: rgba(42, 127, 63, 0.45); background: rgba(42, 127, 63, 0.10); }
-    body[data-theme="dark"][data-tier="trial"] #tier-chip { color: var(--orange); border-color: rgba(249, 115, 22, 0.45); background: rgba(249, 115, 22, 0.10); }
-    body[data-theme="dark"][data-tier="pro"]   #tier-chip { color: var(--ok); border-color: rgba(74, 222, 128, 0.45); background: rgba(74, 222, 128, 0.10); }
-
-    .theme-toggle {
-      width: 28px; height: 28px; padding: 0;
-      border-radius: 999px; border: 1px solid var(--border-hi);
-      background: var(--surface); color: var(--text-2);
-      display: inline-flex; align-items: center; justify-content: center;
-      cursor: pointer;
-    }
-    .language-toggle {
-      width: 28px; height: 28px; padding: 0;
-      border-radius: 999px; border: 1px solid var(--border-hi);
-      background: var(--surface); color: var(--text-2);
-      display: inline-flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      font-size: 10px; font-weight: 800;
+      font-weight: 800;
       letter-spacing: 0;
     }
-    .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
-    .language-toggle:hover { color: var(--text); border-color: var(--accent); }
-    .theme-toggle svg { width: 14px; height: 14px; }
-    /* Theme toggle shows the icon matching the USER PREFERENCE
-       (light/dark/system), not the resolved theme — so when the
-       user is on 'system', they see the monitor icon. */
-    .theme-toggle svg { display: none; }
-    body[data-theme-pref="light"]  .theme-toggle .ico-sun     { display: inline; }
-    body[data-theme-pref="dark"]   .theme-toggle .ico-moon    { display: inline; }
-    body[data-theme-pref="system"] .theme-toggle .ico-monitor { display: inline; }
-    /* Defensive fallback: if data-theme-pref not yet set, show sun for
-       light, moon for dark (covers the brief flash before applyTheme()). */
-    body:not([data-theme-pref]) .theme-toggle .ico-sun  { display: none; }
-    body:not([data-theme-pref]) .theme-toggle .ico-moon { display: none; }
-    body:not([data-theme-pref])[data-theme="light"] .theme-toggle .ico-sun  { display: inline; }
-    body:not([data-theme-pref])[data-theme="dark"]  .theme-toggle .ico-moon { display: inline; }
-
-    .language-toggle .language-toggle-text { transform: translateY(.2px); }
-
-    /* === Main tab bar === */
-    .tabbar {
-      display: flex; gap: 4px; padding: 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 10px;
-    }
-    .tab-btn {
-      flex: 1; padding: 10px 4px;
-      background: none; border: none;
-      color: var(--muted); font-size: 12.5px; font-weight: 500;
-      cursor: pointer; position: relative;
-      transition: color 120ms;
-    }
-    .tab-btn:hover { color: var(--text-2); }
-    .tab-btn[aria-selected="true"] {
-      color: var(--text); font-weight: 700;          /* bolder when active (polish #2) */
-    }
-    .tab-btn[aria-selected="true"]::after {
-      content: ""; position: absolute;
-      left: 8px; right: 8px; bottom: -1px; height: 3px;  /* 3px underline (polish #2) */
-      background: var(--accent); border-radius: 2px;
-    }
-    .tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
-
-    /* === Tab panels === */
-    [role="tabpanel"] { display: none; }
-    [role="tabpanel"][data-active="1"] { display: block; }
-    body:not([data-tab-ready="1"]) .popup { visibility: hidden; }
-
-    /* === Pro tab === */
-    .pro-banner {
-      background: var(--surface);
-      border: 1px solid var(--border-hi);
-      border-radius: var(--radius);
-      padding: 14px; margin-bottom: 10px;
-    }
-    .pro-banner .tier-big {
-      font-size: 36px; font-weight: 800; letter-spacing: 0.02em;
-      line-height: 1; margin-bottom: 4px;
-    }
-    body[data-tier="free"]  .pro-banner .tier-big { color: var(--muted); }
-    body[data-tier="trial"] .pro-banner .tier-big { color: var(--orange); }
-    body[data-tier="pro"]   .pro-banner .tier-big { color: var(--ok); }
-    .pro-banner .tier-sub { font-size: 11.5px; color: var(--text-2); margin-bottom: 12px; }
-    .pro-cta-row { display: flex; flex-direction: column; gap: 6px; }
-    .pro-cta {
-      display: inline-flex; justify-content: center; align-items: center; gap: 6px;
-      padding: 9px 12px; border-radius: var(--radius-sm);
-      background: var(--accent); border: 1px solid var(--accent);
-      color: #0b1120; font-weight: 600; font-size: 12.5px;
-      text-decoration: none; cursor: pointer;
-    }
-    .pro-cta:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
-    .pro-cta.secondary { background: transparent; color: var(--accent-hi); }
-    .pro-cta.secondary:hover { background: var(--surface-2); }
-    .pro-cta svg { width: 14px; height: 14px; }
-
-    .pro-meta { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
-    .pro-meta .row { display: flex; justify-content: space-between; padding: 2px 0; }
-    .pro-meta code { color: var(--text); font-family: ui-monospace, Menlo, monospace; }
-
-    /* Activation form inline in Pro tab */
-    .pro-activate { margin-top: 10px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
-    .pro-activate label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-    .pro-activate input { width: 100%; padding: 6px 8px; background: var(--bg); border: 1px solid var(--border-hi); border-radius: var(--radius-xs); color: var(--text); font-size: 12px; }
-    .pro-activate input:focus { outline: 2px solid var(--accent); }
-    .pro-activate .actions { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; }
-    .pro-activate button { padding: 6px 12px; border-radius: var(--radius-xs); border: 1px solid var(--border-hi); background: var(--surface-2); color: var(--text); font-size: 12px; cursor: pointer; }
-    .pro-activate button.primary { background: var(--accent); border-color: var(--accent); color: #0b1120; }
-    .pro-activate button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .pro-msg { margin-top: 6px; font-size: 11px; min-height: 14px; }
-    .pro-msg[data-kind="ok"]  { color: var(--ok); }
-    .pro-msg[data-kind="err"] { color: var(--danger); }
-
-    /* Coming soon list */
-    .coming-list {
-      margin-top: 12px; padding: 10px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
-    }
-    .coming-list-title { font-size: 11.5px; font-weight: 600; color: var(--accent-hi); margin-bottom: 6px; }
-    .coming-list ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
-    .coming-list li { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; color: var(--text-2); }
-    .coming-list li svg { width: 14px; height: 14px; color: var(--muted); }
-    .coming-list li .label { flex: 1; }
-    .coming-list li .chip-soon { font-size: 10px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border-hi); }
-
-    /* === Filter tab (sub-tabs) === */
-    .sub-tabbar {
-      display: flex; gap: 4px; margin: 8px 0 10px;
-      padding: 3px; background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-    }
-    .sub-tab-btn {
-      flex: 1; padding: 6px 4px;
-      background: transparent; border: none; border-radius: var(--radius-xs);
-      color: var(--text-2); font-size: 11.5px; font-weight: 500; cursor: pointer;
-    }
-    .sub-tab-btn:hover { color: var(--text); }
-    .sub-tab-btn[aria-selected="true"] {
-      background: var(--accent); color: #0b1120; font-weight: 600;
-    }
-    [data-sub-panel] { display: none; }
-    [data-sub-panel][data-active="1"] { display: block; }
-
-    /* === Rate/content filter (popup inline settings) === */
-    .rf-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
-    .cf-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-top: 12px; }
-    .rf-section[data-locked="1"] { opacity: 0.55; }
-    .cf-section[data-locked="1"] { opacity: 0.55; }
-    .rf-section[data-locked="1"] input, .rf-section[data-locked="1"] button,
-    .cf-section[data-locked="1"] input, .cf-section[data-locked="1"] button, .cf-section[data-locked="1"] select { cursor: not-allowed; }
-    .lf-section {
-      margin-top: 12px;
-      min-width: 0;
-    }
-    .cf-levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 10px 0; }
-    .cf-level {
-      padding: 7px 4px; border: 1px solid var(--border-hi); border-radius: var(--radius-xs);
-      background: var(--surface-2); color: var(--text-2); font-size: 11px; cursor: pointer;
-    }
-    .cf-level[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #0b1120; font-weight: 700; }
-    .cf-custom { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
-    .cf-custom summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text-2); }
-    .cf-add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
-    .cf-add-grid input, .cf-add-grid select, .cf-whitelist input {
-      width: 100%; min-width: 0; padding: 7px 8px; border: 1px solid var(--border-hi);
-      border-radius: var(--radius-xs); background: var(--bg); color: var(--text); font: inherit; font-size: 12px;
-    }
-    .cf-add-grid #cf-value { grid-column: 1 / -1; }
-    .cf-custom-list { margin: 8px 0; display: flex; flex-direction: column; gap: 5px; }
-    .cf-custom-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-xs); font-size: 11px; color: var(--text-2); }
-    .cf-custom-row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .cf-custom-row button { width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--border-hi); background: transparent; color: var(--muted); cursor: pointer; }
-    .cf-whitelist { margin-top: 7px; }
-    .cf-rules { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
-    .cf-rules summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text-2); }
-    .cf-rule-list { display: flex; flex-direction: column; gap: 7px; margin-top: 8px; max-height: 260px; overflow: auto; }
-    .cf-rule-group { border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-2); padding: 6px 8px; }
-    .cf-rule-group summary { font-size: 11.5px; color: var(--text); }
-    .cf-rule-items { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
-    .cf-rule-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 7px; border-radius: var(--radius-xs); background: var(--surface); border: 1px solid var(--border); }
-    .cf-rule-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .cf-rule-main b { font-size: 11.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .cf-rule-main span { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .cf-rule-row button { width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--border-hi); background: transparent; color: var(--muted); cursor: pointer; flex: 0 0 22px; }
-    .cf-rules-source { margin-top: 4px; font-size: 11px; opacity: 0.75; }
-    .cf-rules-refresh { margin: 4px 0 8px; padding: 4px 10px; font-size: 11px; }
-    .lf-section .rf-row {
-      min-width: 0;
-    }
-    .lf-section #lf-list-input {
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      box-sizing: border-box;
-      padding: 9px 12px;
-      border: 1px solid var(--border-hi);
-      border-radius: var(--radius-sm);
-      background: var(--bg);
-      color: var(--text);
-      font: inherit;
-      font-size: 12.5px;
-      line-height: 1.4;
+    .sub {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
       text-overflow: ellipsis;
     }
-    .lf-section #lf-list-input::placeholder {
-      color: var(--muted);
-      opacity: 0.78;
-    }
-    .lf-section #lf-list-input:focus {
-      outline: 2px solid var(--accent);
-      outline-offset: -1px;
-      border-color: transparent;
-    }
-
-    /* Section header (polish #4: "🔵 流速过滤" inside Filter tab) */
-    .rf-title {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 14px; font-weight: 700; color: var(--text);
-      margin: 0 0 12px;
-    }
-    .rf-title::before {
-      content: ""; display: inline-block;
-      width: 16px; height: 16px; flex: 0 0 16px;
-      background: var(--accent); mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'/></svg>") center/contain no-repeat;
-      -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'/></svg>") center/contain no-repeat;
-    }
-
-    .rf-locked-hint {
-      margin: 0 0 10px; padding: 8px 10px; border-radius: var(--radius-sm);
-      background: rgba(251, 191, 36, 0.08); color: var(--warn);
-      font-size: 11.5px; border: 1px dashed var(--warn);
-    }
-
-    /* Polish #5: enable toggle full row + larger label */
-    .rf-toggle {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 8px; margin: 0 0 12px; font-weight: 500; font-size: 13px;
+    .icon-button {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
       color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
-
-    /* Polish #4: sub-tabs card wrapper */
-    .rf-subcard {
-      background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 4px; margin: 0 0 12px;
+    .icon-button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
-    .rf-subcard .sub-tabbar {
-      background: transparent; border: none; border-radius: 0;
-      padding: 0; margin: 0;
-      border-bottom: 1px solid var(--border);
+    .icon-button svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
-    .rf-subcard .sub-tab-btn {
-      background: transparent !important; color: var(--text-2) !important;
-      border-radius: 0 !important; position: relative;
-      padding: 8px 4px; font-weight: 500;
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      padding: 3px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
     }
-    .rf-subcard .sub-tab-btn:hover {
-      background: var(--surface) !important;
-      color: var(--text) !important;
+    .tab-btn {
+      height: 32px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 650;
     }
-    .rf-subcard .sub-tab-btn:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: -2px;
+    .tab-btn[aria-selected="true"] {
+      background: var(--surface);
+      color: var(--accent);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
     }
-    .rf-subcard .sub-tab-btn[aria-selected="true"] {
-      background: var(--accent) !important;
-      color: #0b1120 !important;
-      border-radius: var(--radius-xs) var(--radius-xs) 0 0 !important;
-      font-weight: 700;
-      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.1);
+    [role="tabpanel"] {
+      display: none;
     }
-    .rf-subcard .sub-tab-btn[aria-selected="true"]::after {
-      content: ""; position: absolute;
-      left: 10px; right: 10px; bottom: -1px; height: 2px;
-      background: var(--accent-hi); border-radius: 2px;
+    [role="tabpanel"][data-active="1"] {
+      display: block;
     }
-    .rf-subcard [data-sub-panel] { padding: 10px 4px 4px; }
-
-    .rf-fieldset { border: none; padding: 0; margin: 0; }
-    .rf-fieldset legend { display: none; }
-
-    /* Polish #8: full-width inputs (one per row, not right-aligned tiny) */
-    .rf-row { margin: 10px 0; font-size: 12px; color: var(--text-2); }
-    .rf-row > span:first-child {
-      display: block; font-size: 11.5px; color: var(--text-2); margin-bottom: 5px;
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
     }
-    .rf-row input[type="number"] {
-      width: 100%;
-      padding: 9px 12px; border: 1px solid var(--border-hi);
-      border-radius: var(--radius-sm); background: var(--bg); color: var(--text);
-      font: inherit; font-size: 13px; text-align: left;
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 0 0 10px;
     }
-    .rf-row input[type="number"]:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-
-    .rf-rule-hint { font-size: 10.5px; color: var(--muted); margin: 10px 0; line-height: 1.5; }
-
-    /* Polish #7: full-width Save button */
-    .rf-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
-    .rf-btn, .rf-btn-ghost {
-      width: 100%;
-      padding: 11px 14px; border-radius: var(--radius-sm);
-      font-size: 13px; font-weight: 700;
-      cursor: pointer; border: 1px solid var(--accent);
+    .section-title svg {
+      width: 15px;
+      height: 15px;
+      color: var(--accent);
     }
-    .rf-btn       { background: var(--accent); color: #0b1120; }
-    .rf-btn:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
-    .rf-btn-ghost { background: transparent; color: var(--accent-hi); order: 2; font-weight: 500; font-size: 12px; padding: 6px; border: none; }
-    .rf-btn-ghost:hover { color: var(--text); }
-    .rf-msg { margin-top: 8px; font-size: 11px; min-height: 14px; text-align: center; }
-    .rf-msg[data-kind="ok"]  { color: var(--ok); }
-    .rf-msg[data-kind="err"] { color: var(--danger); }
-
-    /* Rate-filter scope toggles use the same shadcn pill switch as binary feature controls. */
-    .rf-scope { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
-    .rf-scope-title { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
-    .rf-scope label {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 0; font-size: 13px; color: var(--text); cursor: pointer;
-      user-select: none;
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 34px;
     }
-    input[type="checkbox"].xvm-cb,
-    .col-list input[type="checkbox"] {
-      appearance: none; -webkit-appearance: none;
-      width: 18px; height: 18px; flex: 0 0 18px;
-      border: 1.5px solid var(--border-hi); border-radius: 4px;
-      background: var(--bg); cursor: pointer;
-      position: relative; margin: 0;
+    .row + .row {
+      margin-top: 8px;
+    }
+    .row label,
+    .label {
+      color: var(--text);
+      font-weight: 650;
+    }
+    .hint {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 400;
+      margin-top: 1px;
+    }
+    input[type="number"],
+    select {
+      width: 108px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 0 8px;
+    }
+    .switch {
+      position: relative;
+      display: inline-flex;
+      width: 42px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      cursor: pointer;
       transition: background 120ms, border-color 120ms;
     }
-    input[type="checkbox"].xvm-cb:checked,
-    .col-list input[type="checkbox"]:checked {
-      background: var(--accent); border-color: var(--accent);
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 2px;
+      top: 2px;
+      border-radius: 50%;
+      background: var(--surface);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.22);
+      transition: transform 120ms;
     }
-    input[type="checkbox"].xvm-cb:checked::after,
-    .col-list input[type="checkbox"]:checked::after {
-      content: ""; position: absolute; left: 4px; top: 1px;
-      width: 6px; height: 11px;
-      border: solid #0b1120; border-width: 0 2px 2px 0;
-      transform: rotate(45deg);
+    .switch input:checked + .slider {
+      background: var(--accent);
+      border-color: var(--accent);
     }
-    input[type="checkbox"].xvm-cb:focus-visible,
-    .col-list input[type="checkbox"]:focus-visible {
-      outline: 2px solid var(--accent); outline-offset: 2px;
+    .switch input:checked + .slider::before {
+      transform: translateX(18px);
     }
-
-    /* === Polish #5: shadcn pill switch (24×44 with sliding knob) === */
-    .switch {
-      position: relative; display: inline-block;
-      width: 44px; height: 24px; flex: 0 0 44px;
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
     }
-    .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
-    .switch .slider {
-      position: absolute; inset: 0; cursor: pointer;
-      background: var(--surface-3); border-radius: 999px;
-      transition: 200ms;
-    }
-    .switch .slider::before {
-      content: ""; position: absolute; top: 2px; left: 2px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: white;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-      transition: 200ms;
-    }
-    .switch input:checked + .slider { background: var(--accent); }
-    .switch input:checked + .slider::before { transform: translateX(20px); }
-    .switch input:focus-visible + .slider { box-shadow: 0 0 0 2px var(--accent); }
-
-    /* === Leaderboard tab + About tab (legacy controls in dark theme) === */
-    .panel-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin: 0 0 10px; }
-    .panel-card h3 { font-size: 12px; margin-bottom: 8px; color: var(--text-2); font-weight: 600; }
-    label.field { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--text-2); margin: 6px 0; }
-    .row { display: flex; gap: 8px; }
-    .row > .field { flex: 1; }
-    input[type="number"], input[type="text"], textarea {
-      padding: 6px 8px; border: 1.5px solid var(--border-hi); border-radius: var(--radius-xs);
-      background: var(--bg); color: var(--text); font: inherit; font-size: 12px;
-    }
-    input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-    textarea { min-height: 80px; resize: vertical; }
-
-    /* shadcn-style custom Select: trigger + listbox, no native dropdown. */
-    .xvm-select { position: relative; width: 100%; }
-    .xvm-select-trigger {
-      width: 100%;
-      min-height: 34px;
-      padding: 7px 32px 7px 10px;
-      border: 1.5px solid var(--border-hi);
-      border-radius: var(--radius-xs);
-      background: var(--bg);
+    .btn {
+      height: 32px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
       color: var(--text);
-      font: inherit;
-      font-size: 12.5px;
-      line-height: 1.35;
-      text-align: left;
+      padding: 0 12px;
       cursor: pointer;
+      font-weight: 700;
+    }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn:hover {
+      border-color: var(--accent);
+    }
+    .columns {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 6px;
+    }
+    .columns li {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-    }
-    .xvm-select-trigger:hover { border-color: var(--accent); }
-    .xvm-select-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-    .xvm-select-value {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .xvm-select-chev {
-      position: absolute;
-      right: 9px;
-      width: 14px;
-      height: 14px;
-      pointer-events: none;
-      color: var(--muted);
-      transition: transform 120ms;
-    }
-    .xvm-select[data-open="1"] .xvm-select-chev { transform: rotate(180deg); }
-    .xvm-select-menu {
-      position: absolute;
-      z-index: 20;
-      left: 0;
-      right: 0;
-      top: calc(100% + 4px);
-      max-height: 180px;
-      overflow: auto;
-      padding: 4px;
-      border: 1px solid var(--border-hi);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.18);
-      display: none;
-    }
-    .xvm-select[data-open="1"] .xvm-select-menu { display: block; }
-    .xvm-select-option {
-      width: 100%;
-      padding: 7px 8px;
-      border: 0;
-      border-radius: var(--radius-xs);
-      background: transparent;
-      color: var(--text);
-      font: inherit;
-      font-size: 12.5px;
-      text-align: left;
-      cursor: pointer;
-    }
-    .xvm-select-option:hover,
-    .xvm-select-option:focus-visible {
-      outline: none;
+      min-height: 30px;
+      padding: 0 8px;
+      border-radius: 6px;
       background: var(--surface-2);
     }
-    .xvm-select-option[aria-selected="true"] {
-      background: var(--accent);
-      color: #0b1120;
-      font-weight: 600;
+    .columns input {
+      accent-color: var(--accent);
     }
-    button.adv-btn {
-      padding: 6px 12px; border: 1px solid var(--border-hi);
-      border-radius: var(--radius-sm); background: var(--surface-2);
-      color: var(--text); font: inherit; font-size: 12px; cursor: pointer;
+    .about-copy {
+      margin: 0;
+      color: var(--muted);
     }
-    button.adv-btn:hover { background: var(--border-hi); }
-    button.adv-btn.primary { background: var(--accent); border-color: var(--accent); color: #0b1120; }
-    .actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
-    .actions.compact button { padding: 4px 10px; font-size: 11px; }
-    .status-msg { font-size: 11px; color: var(--ok); margin-top: 6px; }
-    .info-box {
-      background: var(--surface-2); border-radius: var(--radius-sm);
-      padding: 8px 10px; font-size: 11.5px; color: var(--text-2); margin: 6px 0;
+    .about-copy strong {
+      color: var(--text);
     }
-    .info-box .tier { display: flex; gap: 6px; margin: 2px 0; }
-    .info-box .tier .icon { width: 18px; text-align: center; }
-    .info-box .tier .label { flex: 1; }
-    .info-box .tier .range { color: var(--muted); font-variant-numeric: tabular-nums; }
-    .feature-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); }
-    .feature-row:first-child { border-top: 0; }
-    .ft-body { flex: 1; }
-    .ft-title { font-size: 12.5px; font-weight: 600; }
-    .ft-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
-    .ft-lb-count, .ft-lb-cols, .ft-lb-reset { margin-top: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .ft-lb-count input[type="number"] { width: 56px; padding: 3px 5px; text-align: right; }
-    .ft-lb-cols-hint { font-size: 10.5px; color: var(--muted); }
-    .col-list { list-style: none; padding: 0; margin: 4px 0; display: flex; flex-direction: column; gap: 3px; flex-basis: 100%; }
-    .col-list li { display: flex; align-items: center; gap: 6px; padding: 3px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 11px; cursor: grab; }
-    .ft-lb-reset-btn { padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-hi); background: var(--surface-2); color: var(--text-2); font-size: 11.5px; cursor: pointer; }
-    .ft-lb-reset-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .ft-lb-reset-msg { font-size: 11px; color: var(--ok); }
-    .grok-template .grok-template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
-    .inline-toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; margin: 6px 0; color: var(--text-2); }
-    .feature-row > .switch, .inline-toggle > .switch { margin-top: 1px; }
-    .divider { height: 1px; background: var(--border); margin: 10px 0; }
-
-    /* === Footer === */
-    .footer-line {
-      text-align: center; font-size: 10.5px; color: var(--muted);
-      margin: 8px 0 0;
+    .version {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 11px;
     }
-    .footer-line a { color: var(--accent); text-decoration: none; }
-
-    /* === Toast === */
-    #xvm-toast {
-      position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
-      background: var(--surface-2); color: var(--text);
-      border: 1px solid var(--border-hi);
-      padding: 8px 14px; border-radius: var(--radius-sm);
-      font-size: 12px; opacity: 0; pointer-events: none;
-      transition: opacity 200ms; z-index: 9999;
+    #status {
+      min-height: 18px;
+      margin-top: 8px;
+      color: var(--ok);
+      font-size: 12px;
     }
-    #xvm-toast.show { opacity: 1; }
   </style>
 </head>
-<body data-tab="filter" data-tier="free" data-theme="light">
-
-  <!-- ============ Lucide SVG icon sprite ============ -->
-  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden" focusable="false">
-    <symbol id="icon-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3l1.5 4.5L15 9l-4.5 1.5L9 15l-1.5-4.5L3 9l4.5-1.5L9 3z"/><path d="M19 3v4"/><path d="M21 5h-4"/><path d="M19 17v4"/><path d="M21 19h-4"/></symbol>
-    <symbol id="icon-palette"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="0.5" fill="currentColor"/><circle cx="17.5" cy="10.5" r="0.5" fill="currentColor"/><circle cx="8.5" cy="7.5" r="0.5" fill="currentColor"/><circle cx="6.5" cy="12.5" r="0.5" fill="currentColor"/><path d="M12 2a10 10 0 1 0 10 10c0-2.21-1.79-3-4-3h-2a3 3 0 0 1-3-3V4a2 2 0 0 0-1-2z"/></symbol>
-    <symbol id="icon-webhook"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16.98h-5.99c-1.66 0-3.01-1.34-3.01-3s1.35-3 3-3"/><path d="M3.07 11.5l4.41-7.55a3 3 0 0 1 5.99.06"/><path d="M16.97 19.5l-3.16-5.53a3.001 3.001 0 0 0-5.21-.02"/></symbol>
-    <symbol id="icon-bell"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
-    <symbol id="icon-sun"      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
-    <symbol id="icon-moon"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
-    <symbol id="icon-monitor"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></symbol>
+<body data-theme="light">
+  <svg width="0" height="0" style="position:absolute">
+    <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a7 7 0 1 0 11 11Z"></path></symbol>
+    <symbol id="icon-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></symbol>
+    <symbol id="icon-gauge" viewBox="0 0 24 24"><path d="M12 14l4-4"></path><path d="M4 14a8 8 0 1 1 16 0"></path><path d="M5 18h14"></path></symbol>
+    <symbol id="icon-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"></path><path d="M3 6h.01M3 12h.01M3 18h.01"></path></symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></symbol>
   </svg>
 
-  <div class="popup">
-
-    <!-- ============ Compact header ============ -->
+  <main class="popup">
     <header class="app-header">
-      <img class="app-logo" src="icons/icon_origin.svg" alt="X Viral Monitor">
+      <img class="app-logo" src="icons/icon_origin.svg" alt="Red Viral Monitor">
       <div class="app-title">
-        <span class="name">X-Viral-Monitor</span>
-        <span class="sub" data-i18n="popupSubtitle">Real-time impression velocity on X tweets</span>
+        <span class="name" data-i18n="extName">Red Viral Monitor</span>
+        <span class="sub" data-i18n="popupSubtitle">小红书网页端热度辅助</span>
       </div>
-      <span id="tier-chip">FREE</span>
-      <button type="button" id="language-toggle" class="language-toggle" aria-label="Language" title="Language">
-        <span class="language-toggle-text">A</span>
-      </button>
-      <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
-        <svg class="ico-sun"><use href="#icon-sun"/></svg>
-        <svg class="ico-moon"><use href="#icon-moon"/></svg>
-        <svg class="ico-monitor"><use href="#icon-monitor"/></svg>
+      <button id="theme-toggle" class="icon-button" type="button" data-i18n-title="themeLabel" aria-label="Theme">
+        <svg class="theme-icon"><use href="#icon-monitor"></use></svg>
       </button>
     </header>
 
-    <!-- ============ Tab bar ============ -->
-    <div class="tabbar" role="tablist">
-      <button type="button" class="tab-btn" role="tab" data-tab="pro"         aria-selected="false"><span data-i18n="tabPro">Pro</span></button>
-      <button type="button" class="tab-btn" role="tab" data-tab="filter"      aria-selected="true"><span data-i18n="tabFilter">Filter</span></button>
-      <button type="button" class="tab-btn" role="tab" data-tab="leaderboard" aria-selected="false"><span data-i18n="tabLeaderboard">Leaderboard</span></button>
-      <button type="button" class="tab-btn" role="tab" data-tab="about"       aria-selected="false"><span data-i18n="tabAbout">About</span></button>
-    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn" type="button" role="tab" aria-selected="true" data-tab="settings" data-i18n="tabSettings">设置</button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="leaderboard" data-i18n="tabLeaderboard">榜单</button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="about" data-i18n="tabAbout">关于</button>
+    </nav>
 
-    <!-- ============ Tab: Pro ============ -->
-    <section role="tabpanel" id="tabpanel-pro" data-tab-panel="pro">
-      <!-- popup-pro.js renders banner + CTAs + meta into #xvm-pro-section,
-           and inline activate form into #activate-inline below it. -->
-      <div id="xvm-pro-section" class="pro-banner" data-tier="free"></div>
-
-      <div class="pro-activate" id="activate-inline" hidden>
-        <label for="activate-key" data-i18n="proActivateLabel">Already bought? Enter your license key:</label>
-        <input id="activate-key" type="text" autocomplete="off" placeholder="creem-XXXXX...">
+    <section role="tabpanel" data-tab-panel="settings" data-active="1">
+      <form id="settings-form" class="section">
+        <h2 class="section-title"><svg><use href="#icon-gauge"></use></svg><span data-i18n="settingsThresholdsTitle">热度阈值</span></h2>
+        <div class="row">
+          <label for="trending" data-i18n="trendingLabel">升温</label>
+          <input id="trending" type="number" min="1" step="10">
+        </div>
+        <div class="row">
+          <label for="viral" data-i18n="viralLabel">爆款</label>
+          <input id="viral" type="number" min="1" step="10">
+        </div>
+        <div class="row">
+          <label for="badge-style" data-i18n="badgeStyleLabel">标记样式</label>
+          <select id="badge-style">
+            <option value="pill-solid" data-i18n="badgeStylePill">徽章</option>
+            <option value="inline-classic" data-i18n="badgeStyleInline">简洁</option>
+          </select>
+        </div>
+        <div class="row">
+          <span>
+            <span class="label" data-i18n="featureCopyMdLabel">复制 Markdown</span>
+            <span class="hint" data-i18n="featureCopyMdHint">笔记浮层按钮</span>
+          </span>
+          <label class="switch"><input id="feat-copy-md" type="checkbox"><span class="slider"></span></label>
+        </div>
         <div class="actions">
-          <button type="button" id="activate-cancel" class="adv-btn" data-i18n="btnCancel">Cancel</button>
-          <button type="button" id="activate-submit" class="adv-btn primary" data-i18n="proActivateBtn">Activate</button>
+          <button class="btn primary" type="submit" data-i18n="saveButton">保存</button>
+          <button class="btn" id="reset" type="button" data-i18n="resetButton">重置</button>
         </div>
-        <div class="pro-msg" id="activate-msg"></div>
-      </div>
+        <div id="status" role="status"></div>
+      </form>
 
-      <div class="coming-list">
-        <div class="coming-list-title" data-i18n="comingListTitle">Coming in v1.8.0</div>
-        <ul>
-          <li><svg><use href="#icon-palette"/></svg><span class="label" data-i18n="featureColorCardLabel">Custom color palette</span><span class="chip-soon" data-i18n="chipComingSoon">Coming soon</span></li>
-          <li><svg><use href="#icon-webhook"/></svg><span class="label" data-i18n="featureWebhookLabel">Private hot-tweet webhook</span><span class="chip-soon" data-i18n="chipComingSoon">Coming soon</span></li>
-          <li><svg><use href="#icon-bell"/></svg><span class="label" data-i18n="featureBarkLabel">Bark notifications</span><span class="chip-soon" data-i18n="chipComingSoon">Coming soon</span></li>
-        </ul>
-      </div>
+      <section class="section">
+        <h2 class="section-title"><svg><use href="#icon-monitor"></use></svg><span data-i18n="displayTitle">显示</span></h2>
+        <div class="row">
+          <label for="language-select" data-i18n="languageLabel">语言</label>
+          <select id="language-select">
+            <option value="auto" data-i18n="languageAuto">跟随浏览器</option>
+            <option value="zh_CN" data-i18n="languageZh">中文</option>
+            <option value="en" data-i18n="languageEn">English</option>
+            <option value="ja" data-i18n="languageJa">日本語</option>
+          </select>
+        </div>
+      </section>
     </section>
 
-    <!-- ============ Tab: Filter ============ -->
-    <section role="tabpanel" id="tabpanel-filter" data-tab-panel="filter" data-active="1">
-      <!-- popup-rate-filter.js renders into #rate-filter-section with
-           nested Short/Long sub-tabs (see rebuilt buildSection). -->
-      <div id="content-filter-section" class="cf-section" data-locked="0"></div>
-      <div id="rate-filter-section" class="rf-section" data-locked="0"></div>
+    <section role="tabpanel" data-tab-panel="leaderboard">
+      <section class="section">
+        <h2 class="section-title"><svg><use href="#icon-list"></use></svg><span data-i18n="leaderboardTitle">热度榜</span></h2>
+        <div class="row">
+          <span>
+            <span class="label" data-i18n="featureLeaderboardLabel">页面榜单</span>
+            <span class="hint" data-i18n="featureLeaderboardHint">按互动速度排序</span>
+          </span>
+          <label class="switch"><input id="feat-leaderboard" type="checkbox"><span class="slider"></span></label>
+        </div>
+        <div class="row">
+          <label for="lb-count" data-i18n="topCountLabel">数量</label>
+          <input id="lb-count" type="number" min="1" max="50" step="1">
+        </div>
+      </section>
+      <section class="section">
+        <h2 class="section-title"><svg><use href="#icon-list"></use></svg><span data-i18n="columnsTitle">列</span></h2>
+        <ul id="lb-col-list" class="columns"></ul>
+        <div class="actions">
+          <button id="lb-reset-pos" class="btn" type="button" data-i18n="resetLeaderboardPosition">重置榜单位置</button>
+        </div>
+        <div id="lb-reset-msg" class="hint"></div>
+      </section>
     </section>
 
-    <!-- ============ Tab: Leaderboard ============ -->
-    <section role="tabpanel" id="tabpanel-leaderboard" data-tab-panel="leaderboard">
-
-      <div class="panel-card">
-        <h3 data-i18n="advBadgeThresholdsTitle">Badge thresholds &amp; style</h3>
-        <div class="info-box">
-          <div class="tier"><span class="icon">🌱</span><span class="label" data-i18n="tierNormal">Normal</span><span class="range" id="range-green">&lt; 1,000/h</span></div>
-          <div class="tier"><span class="icon">🚀</span><span class="label" data-i18n="tierTrending">Trending</span><span class="range" id="range-orange">1,000 ~ 10,000/h</span></div>
-          <div class="tier"><span class="icon">🔥</span><span class="label" data-i18n="tierViral">Viral</span><span class="range" id="range-red">≥ 10,000/h</span></div>
-        </div>
-        <form id="settings-form">
-          <div class="row">
-            <label class="field"><span data-i18n="thresholdTrending">🚀 Trending threshold</span><input id="trending" type="number" min="1" step="1" required></label>
-            <label class="field"><span data-i18n="thresholdViral">🔥 Viral threshold</span><input id="viral" type="number" min="2" step="1" required></label>
-          </div>
-          <label class="field"><span data-i18n="badgeStyleLabel">🏷️ Badge style</span>
-            <div class="xvm-select" data-select-name="badge-style">
-              <input id="badge-style" type="hidden" value="pill-solid">
-              <button type="button" class="xvm-select-trigger" aria-haspopup="listbox" aria-expanded="false">
-                <span class="xvm-select-value">Pill solid</span>
-                <svg class="xvm-select-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              <div class="xvm-select-menu" role="listbox"></div>
-            </div>
-          </label>
-          <div class="actions">
-            <button type="button" id="reset" class="adv-btn" data-i18n="btnReset">Reset</button>
-            <button type="submit" class="adv-btn primary" data-i18n="btnSave">Save</button>
-          </div>
-          <p id="status" class="status-msg" role="status"></p>
-        </form>
-      </div>
-
-      <div class="panel-card">
-        <h3 data-i18n="advLeaderboardTitle">Leaderboard details</h3>
-        <div class="feature-row">
-          <div class="ft-body">
-            <label for="feat-leaderboard"><div class="ft-title" data-i18n="featureLeaderboardTitle">📊 Velocity leaderboard</div></label>
-            <div class="ft-lb-count"><label for="lb-count" data-i18n="featureLeaderboardShowTop">Show top</label><input id="lb-count" type="number" min="1" max="50" step="1"><span data-i18n="featureLeaderboardTweets">tweets</span></div>
-            <div class="ft-lb-cols">
-              <div class="ft-lb-cols-hint" data-i18n="featureLeaderboardColsHint">Drag to reorder · check to show</div>
-              <ul id="lb-col-list" class="col-list"></ul>
-            </div>
-            <div class="ft-lb-reset">
-              <button type="button" id="lb-reset-pos" class="ft-lb-reset-btn" data-i18n="featureLeaderboardResetPos">Reset leaderboard position</button>
-              <span class="ft-lb-reset-msg" id="lb-reset-msg"></span>
-            </div>
-          </div>
-          <label class="switch" for="feat-leaderboard" aria-label="Velocity leaderboard"><input id="feat-leaderboard" type="checkbox"><span class="slider"></span></label>
-        </div>
-      </div>
+    <section role="tabpanel" data-tab-panel="about">
+      <section class="section">
+        <h2 class="section-title"><svg><use href="#icon-copy"></use></svg><span data-i18n="aboutTitle">小红书专用</span></h2>
+        <p class="about-copy" data-i18n="aboutBody">当前版本只在 xiaohongshu.com 运行，围绕笔记互动热度、页面榜单和 Markdown 复制工作。</p>
+        <p class="version">v<span id="popup-version"></span></p>
+      </section>
     </section>
+  </main>
 
-    <!-- ============ Tab: About ============ -->
-    <section role="tabpanel" id="tabpanel-about" data-tab-panel="about">
-
-      <div class="panel-card">
-        <h3 data-i18n="advAppearanceTitle">Appearance</h3>
-        <div class="rf-row">
-          <span data-i18n="themeLabel">Theme</span>
-          <button type="button" id="theme-toggle-about" class="adv-btn"></button>
-        </div>
-        <div class="rf-row">
-          <span data-i18n="languageLabel">Language</span>
-          <div class="xvm-select" data-select-name="language-select">
-            <input id="language-select" type="hidden" value="auto">
-            <button type="button" class="xvm-select-trigger" aria-haspopup="listbox" aria-expanded="false">
-              <span class="xvm-select-value">Auto</span>
-              <svg class="xvm-select-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="xvm-select-menu" role="listbox"></div>
-          </div>
-          <div class="ft-desc" data-i18n="languageHint">Controls the popup, page overlays, and default Grok prompt language.</div>
-        </div>
-      </div>
-
-      <div class="panel-card">
-        <h3 data-i18n="advOtherFeaturesTitle">Other features</h3>
-        <div class="feature-row"><div class="ft-body"><label for="feat-copy-md"><div class="ft-title" data-i18n="featureCopyMdTitle">📋 Copy tweet as Markdown</div><div class="ft-desc" data-i18n="featureCopyMdDesc">Adds a "Copy as Markdown" entry at the bottom of X's native share menu.</div></label></div><label class="switch" for="feat-copy-md" aria-label="Copy tweet as Markdown"><input id="feat-copy-md" type="checkbox"><span class="slider"></span></label></div>
-        <div class="feature-row"><div class="ft-body"><label for="feat-starchart"><div class="ft-title" data-i18n="popupStarChartLabel">⭐ Thank-You Star Chart</div><div class="ft-desc" data-i18n="popupStarChartHint">Adds a star-chart option to the share menu of any tweet.</div></label></div><label class="switch" for="feat-starchart" aria-label="Thank-You Star Chart"><input id="feat-starchart" type="checkbox"><span class="slider"></span></label></div>
-        <div class="feature-row"><div class="ft-body"><label for="feat-bookmark-count"><div class="ft-title" data-i18n="featureBookmarkCountTitle">🔖 Show bookmark count</div><div class="ft-desc" data-i18n="featureBookmarkCountDesc">Display the bookmark count next to each tweet's bookmark button on the timeline.</div></label></div><label class="switch" for="feat-bookmark-count" aria-label="Show bookmark count"><input id="feat-bookmark-count" type="checkbox"><span class="slider"></span></label></div>
-      </div>
-
-      <div class="panel-card grok-template">
-        <h3 data-i18n="advGrokShortTitle">Grok reply — short tweet template</h3>
-        <div class="grok-template-grid">
-          <div class="xvm-select" data-select-name="grok-template-select">
-            <input id="grok-template-select" type="hidden" aria-label="Grok prompt template">
-            <button type="button" class="xvm-select-trigger" aria-haspopup="listbox" aria-expanded="false">
-              <span class="xvm-select-value"></span>
-              <svg class="xvm-select-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="xvm-select-menu" role="listbox"></div>
-          </div>
-          <input id="grok-template-name" type="text" aria-label="Grok prompt template name">
-        </div>
-        <label class="field" for="grok-prompt"><span data-i18n="grokShortTemplateLabel">Tweet template (short posts, &lt;600 chars)</span><textarea id="grok-prompt" spellcheck="false"></textarea></label>
-        <div class="ft-desc" data-i18n="popupGrokPromptHint">Use [推文内容] where the source tweet should be inserted.</div>
-        <label class="inline-toggle" for="grok-temp-chat"><span data-i18n="popupGrokTempChatLabel">Use temporary chat (don't pollute Grok history)</span><span class="switch"><input id="grok-temp-chat" type="checkbox"><span class="slider"></span></span></label>
-        <div class="actions compact">
-          <button type="button" id="grok-prompt-add" class="adv-btn" data-i18n="btnAdd">Add</button>
-          <button type="button" id="grok-prompt-save" class="adv-btn" data-i18n="btnSave">Save</button>
-          <button type="button" id="grok-prompt-delete" class="adv-btn" data-i18n="btnDelete">Delete</button>
-          <button type="button" id="grok-prompt-reset" class="adv-btn" data-i18n="btnReset">Reset</button>
-        </div>
-      </div>
-
-      <div class="panel-card grok-template">
-        <h3 data-i18n="advGrokArticleTitle">Grok reply — article template</h3>
-        <div class="grok-template-grid">
-          <div class="xvm-select" data-select-name="grok-article-template-select">
-            <input id="grok-article-template-select" type="hidden" aria-label="Grok article prompt template">
-            <button type="button" class="xvm-select-trigger" aria-haspopup="listbox" aria-expanded="false">
-              <span class="xvm-select-value"></span>
-              <svg class="xvm-select-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="xvm-select-menu" role="listbox"></div>
-          </div>
-          <input id="grok-article-template-name" type="text" aria-label="Grok article template name">
-        </div>
-        <label class="field" for="grok-article-prompt"><span data-i18n="grokArticleTemplateLabel">Article template (used for X Articles / long posts, ≥600 chars)</span><textarea id="grok-article-prompt" spellcheck="false"></textarea></label>
-        <div class="ft-desc" data-i18n="grokArticleTemplateHint">This template group is used automatically when replying to X long-form posts or Articles.</div>
-        <div class="actions compact">
-          <button type="button" id="grok-article-prompt-add" class="adv-btn" data-i18n="btnAdd">Add</button>
-          <button type="button" id="grok-article-prompt-save" class="adv-btn" data-i18n="btnSave">Save</button>
-          <button type="button" id="grok-article-prompt-delete" class="adv-btn" data-i18n="btnDelete">Delete</button>
-          <button type="button" id="grok-article-prompt-reset" class="adv-btn" data-i18n="btnReset">Reset</button>
-        </div>
-      </div>
-
-      <p class="footer-line">
-        <a href="https://github.com/Icy-Cat/x-viral-monitor" target="_blank" rel="noopener">github.com/Icy-Cat/x-viral-monitor</a>
-        · v<span id="popup-version">1.7.9</span>
-      </p>
-    </section>
-
-  </div>
-
-  <div id="xvm-toast" role="status" aria-live="polite"></div>
-
-  <script src="src/premium/license/tier-logic.js"></script>
-  <script src="src/premium/license/entitlement.js"></script>
-  <script src="src/premium/license/popup-pro.js"></script>
-  <script src="src/premium/rate-filter/popup-rate-filter.js"></script>
-  <script src="src/premium/content-filter/rules.js"></script>
-  <script src="src/premium/content-filter/popup-content-filter.js"></script>
   <script src="popup.js"></script>
-  <script src="popup-dashboard.js"></script>
 </body>
 </html>
