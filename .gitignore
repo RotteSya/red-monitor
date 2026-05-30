@@ -2,16 +2,10 @@ node_modules/
 /release/
 /dist/
 .superpowers/
-.playwright-mcp/
-secrets/*
-!secrets/
-!secrets/README.md
 *.png.bak
 
-# bb-browser / playwright-mcp scratch artifacts that pile up at repo root
+# Local browser/debug scratch artifacts that pile up at repo root
 /.snap.json
 /.tmp_snapshot.json
 /xviral-*.png
 /xvm-*.png
-/liv-newtweet-*.png
-/content-filter-sample-report.json

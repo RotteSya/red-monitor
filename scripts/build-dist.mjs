@@ -12,11 +12,13 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = resolve(root, 'dist');
 
-// Xiaohongshu-only MV3 extension shipping set. Keep this list narrow so
-// legacy X/Twitter modules in the source tree are not copied into dist/.
+// Xiaohongshu-only MV3 extension shipping set. Keep this list narrow so the
+// loadable package contains only runtime files used by manifest.json.
 const ITEMS = [
   '_locales',
-  'icons',
+  'icons/icon-v4-16.png',
+  'icons/icon-v4-48.png',
+  'icons/icon-v4-128.png',
   'lib/xhs-net-hook.js',
   'bridge.js',
   'content.js',
@@ -25,6 +27,7 @@ const ITEMS = [
   'popup.js',
   'styles.css',
 ];
+const CLEAN_ITEMS = ['_locales', 'icons', 'lib', 'bridge.js', 'content.js', 'manifest.json', 'popup.html', 'popup.js', 'styles.css'];
 
 function main() {
   let cleanRoot = true;
@@ -35,7 +38,7 @@ function main() {
       if (err?.code !== 'EBUSY') throw err;
       cleanRoot = false;
       console.warn('[build-dist] dist/ is locked, refreshing entries in place');
-      for (const item of ITEMS) {
+      for (const item of CLEAN_ITEMS) {
         rmSync(resolve(dist, item), { recursive: true, force: true });
       }
     }

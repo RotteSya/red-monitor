@@ -134,7 +134,9 @@ describe('dist build contract', () => {
     const items = readBuildItems();
     expect(items).toEqual([
       '_locales',
-      'icons',
+      'icons/icon-v4-16.png',
+      'icons/icon-v4-48.png',
+      'icons/icon-v4-128.png',
       'lib/xhs-net-hook.js',
       'bridge.js',
       'content.js',

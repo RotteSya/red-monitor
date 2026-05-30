@@ -14,34 +14,44 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
       - name: Build zip
         run: |
-          mkdir -p dist
-          zip -r dist/x-viral-monitor-${{ github.ref_name }}.zip \
-            manifest.json content.js bridge.js starchart.js popup.html popup.js styles.css \
-            _locales/ icons/ lib/
+          npm run build:dist
+          mkdir -p release
+          cd dist
+          zip -r ../release/red-viral-monitor-${{ github.ref_name }}.zip .
 
       - name: Create Release
         uses: softprops/action-gh-release@v3
         with:
-          files: dist/x-viral-monitor-${{ github.ref_name }}.zip
+          files: release/red-viral-monitor-${{ github.ref_name }}.zip
           body: |
-            ## X Viral Monitor ${{ github.ref_name }}
+            ## Red Viral Monitor ${{ github.ref_name }}
 
             ### Install
 
-            1. Download `x-viral-monitor-${{ github.ref_name }}.zip` below
+            1. Download `red-viral-monitor-${{ github.ref_name }}.zip` below
             2. Unzip the downloaded file
-            3. Open Chrome → `chrome://extensions/`
+            3. Open Chrome or Edge and visit `chrome://extensions/`
             4. Toggle **Developer mode** on (top right corner)
             5. Click **Load unpacked** (top left)
             6. Select the unzipped folder and confirm
-            7. Visit [x.com](https://x.com) and enjoy!
+            7. Visit `xiaohongshu.com`
 
-            ### Velocity Tiers
+            ### Heat Thresholds
 
-            | Icon | Velocity | Meaning |
-            |------|----------|---------|
-            | 🌱 | < 1,000/h | Normal |
-            | 🚀 | 1,000 - 10,000/h | Trending |
-            | 🔥 | ≥ 10,000/h | Viral |
+            | Label | Default |
+            |-------|---------|
+            | UP | 100/h |
+            | HOT | 500/h |
