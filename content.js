@@ -19,6 +19,67 @@
   const KNOWN_COLUMN_IDS = DEFAULT_LB_COLUMNS.map((col) => col.id);
   const NOTE_ID_RE = /^[0-9a-zA-Z]{12,40}$/;
   const XHS_API_RE = /\/api\/sns\/web\//i;
+  const MARKDOWN_IMAGE_LIMIT = 9;
+  const PLUGIN_NAME = 'Red Viral Monitor';
+  const MARKDOWN_TITLE_SELECTORS = [
+    '#detail-title',
+    '[id*="detail-title"]',
+    '.note-content .title',
+    '.note-content [class*="title"]',
+    '.interaction-container .title',
+    '.interaction-container [class*="title"]',
+    '.note-title',
+    '.title',
+    '[class*="title"]',
+  ];
+  const MARKDOWN_TEXT_SELECTORS = [
+    '#detail-title',
+    '#detail-desc',
+    '[id*="detail-title"]',
+    '[id*="detail-desc"]',
+    '.note-content .title',
+    '.note-content .desc',
+    '.note-content [class*="title"]',
+    '.note-content [class*="desc"]',
+    '.interaction-container .title',
+    '.interaction-container .desc',
+    '.interaction-container [class*="title"]',
+    '.interaction-container [class*="desc"]',
+    '.note-title',
+    '.title',
+    '.desc',
+  ];
+  const MARKDOWN_NOISE_SELECTOR = [
+    '.xvm-lb',
+    '.xvm-badge',
+    '.xvm-copy-md-button',
+    '.xvm-toast',
+    '[class*="xvm-"]',
+    '.comments-container',
+    '.comment-list',
+    '.comment-item',
+    '[class*="comments"]',
+    '[class*="comment-list"]',
+    '[class*="comment-item"]',
+    '[class*="comment-wrapper"]',
+    '[id*="comment"]',
+    'textarea',
+    'input',
+    '[contenteditable="true"]',
+  ].join(',');
+  const METRIC_ROOT_SELECTORS = [
+    '.interactions',
+    '.interaction',
+    '.interact-container',
+    '.interaction-container',
+    '.engage-bar',
+    '.toolbar',
+    '.footer',
+    '[class*="interact"]',
+    '[class*="interaction"]',
+    '[class*="toolbar"]',
+    '[class*="footer"]',
+  ];
 
   let localizedStrings = {};
   let velocityThresholds = { ...DEFAULT_THRESHOLDS };
@@ -427,14 +488,9 @@
   }
 
   function extractDomNoteData(el, id) {
-    const text = cleanText(el.innerText || '');
-    const title = cleanText(queryText(el, [
-      '.title',
-      '.note-title',
-      '[class*="title"]',
-      '.desc',
-      '[class*="desc"]',
-    ])) || firstReadableLine(text);
+    const rawText = cleanText(el.innerText || '');
+    const text = readElementTextForMarkdown(el) || trimTextBeforeComments(stripMarkdownUiText(rawText));
+    const title = readElementTitleForMarkdown(el, text) || firstReadableLine(text);
     const authorName = cleanText(queryText(el, [
       '.author',
       '.name',
@@ -445,7 +501,7 @@
       '[class*="nickname"]',
     ]));
     const metrics = parseMetricsFromElement(el);
-    const createdAt = parseDateFromText(text);
+    const createdAt = parseDateFromText(text || rawText);
     const image = extractDomImage(el);
     const link = el.matches?.('a[href]') ? el : el.querySelector?.('a[href*="/explore/"],a[href*="/search_result/"]');
     const url = link?.href || (getNoteIdFromUrl(location.href) === id ? location.href : buildNoteUrl(id));
@@ -484,13 +540,24 @@
       const text = cleanText(value || '');
       if (text) samples.add(text);
     };
-    add(el.innerText);
-    el.querySelectorAll?.('[aria-label],[title],button,span,div').forEach((node) => {
-      add(node.getAttribute?.('aria-label'));
-      add(node.getAttribute?.('title'));
-      const text = node.childElementCount <= 2 ? node.textContent : '';
-      if (/赞|点赞|喜欢|收藏|评论|留言|分享|like|collect|comment|share/i.test(text || '')) add(text);
-    });
+    const addTextSamples = (value) => {
+      const lines = String(value || '').split('\n').map(cleanText).filter(Boolean);
+      for (let i = 0; i < lines.length; i += 1) {
+        add(lines[i]);
+        if (isMetricLabelLine(lines[i]) && isMetricNumberLine(lines[i + 1])) add(`${lines[i]} ${lines[i + 1]}`);
+      }
+    };
+    const roots = collectMetricRoots(el);
+    for (const root of roots) {
+      root.querySelectorAll?.('[aria-label],[title],button,span,div').forEach((node) => {
+        if (isInsideMarkdownNoise(node)) return;
+        add(node.getAttribute?.('aria-label'));
+        add(node.getAttribute?.('title'));
+        const text = node.childElementCount <= 2 ? node.textContent : '';
+        if (/赞|点赞|喜欢|收藏|评论|留言|分享|like|collect|comment|share/i.test(text || '')) addTextSamples(text);
+      });
+    }
+    if (!samples.size) addTextSamples(el.innerText);
 
     const metrics = { likes: 0, collects: 0, comments: 0, shares: 0 };
     for (const text of samples) {
@@ -500,6 +567,17 @@
       metrics.shares = Math.max(metrics.shares, extractMetric(text, ['分享', '转发', 'share', 'shares']));
     }
     return metrics;
+  }
+
+  function collectMetricRoots(el) {
+    const roots = new Set();
+    for (const selector of METRIC_ROOT_SELECTORS) {
+      el.querySelectorAll?.(selector).forEach((node) => {
+        if (!isInsideMarkdownNoise(node)) roots.add(node);
+      });
+    }
+    if (!roots.size) roots.add(el);
+    return roots;
   }
 
   function extractMetric(text, labels) {
@@ -605,9 +683,19 @@
       btn.addEventListener('click', async (event) => {
         event.preventDefault();
         event.stopPropagation();
-        const latest = noteDataStore.get(id) || data;
-        const ok = await copyTextToClipboard(buildNoteMarkdown(latest, el));
-        showToast(ok ? i18n('contentCopyMdDone') : i18n('contentCopyMdCopyFailed'), { kind: ok ? 'success' : 'error' });
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+        try {
+          const latest = noteDataStore.get(id) || data;
+          const ok = await copyTextToClipboard(buildNoteMarkdown(latest, el));
+          showToast(ok ? i18n('contentCopyMdDone') : i18n('contentCopyMdCopyFailed'), { kind: ok ? 'success' : 'error' });
+        } finally {
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+          }, 600);
+        }
       });
       if (isDetailMediaHost(host)) btn.classList.add('xvm-copy-md-button--detail');
       host.appendChild(btn);
@@ -666,35 +754,208 @@
     return lines.filter(Boolean).join('\n');
   }
 
-  function buildNoteMarkdown(data, el) {
-    const text = cleanText(data.text || el?.innerText || data.title || '');
-    const title = cleanText(data.title || firstReadableLine(text) || i18n('contentFallbackNoteLabel'));
+  function buildNoteMarkdown(data = {}, el) {
+    const elementText = readElementTextForMarkdown(el);
+    const sourceText = data.source === 'dom' && elementText ? elementText : (data.text || elementText || data.title || '');
+    const text = stripMarkdownUiText(cleanText(sourceText));
+    const elementTitle = readElementTitleForMarkdown(el, elementText);
+    const title = cleanText(data.title || elementTitle || firstReadableLine(text) || i18n('contentFallbackNoteLabel'));
     const author = cleanText(data.authorName || '');
-    const url = data.url || buildNoteUrl(data.id);
+    const posted = data.createdAt ? formatDate(data.createdAt) : '';
+    const url = resolveMarkdownSourceUrl(data);
+    const body = removeLeadingTitle(text, title);
     const images = collectImagesForMarkdown(data, el);
+    const metrics = resolveMarkdownMetrics(data, el);
     const lines = [`# ${escapeMarkdown(title)}`, ''];
-    if (author) lines.push(`> ${i18n('contentAuthor')}: ${escapeMarkdown(author)}`, '');
-    const body = text && text !== title ? text : '';
+    if (author) lines.push(`> ${i18n('contentAuthor')}: ${escapeMarkdown(author)}`);
+    if (posted) lines.push(`> ${i18n('contentPosted')}: ${posted}`);
+    if (url) lines.push(`> ${i18n('contentSource')}: ${url}`);
+    if (lines[lines.length - 1] !== '') lines.push('');
     if (body) lines.push(escapeMarkdown(body), '');
     if (images.length) {
-      for (const image of images.slice(0, 9)) lines.push(`![](${image})`);
+      for (const image of images.slice(0, MARKDOWN_IMAGE_LIMIT)) lines.push(`![](${image})`);
       lines.push('');
     }
-    lines.push(`- ${i18n('contentLikes')}: ${formatCompact(data.likes)}`);
-    lines.push(`- ${i18n('contentCollects')}: ${formatCompact(data.collects)}`);
-    lines.push(`- ${i18n('contentComments')}: ${formatCompact(data.comments)}`);
-    if (data.shares) lines.push(`- ${i18n('contentShares')}: ${formatCompact(data.shares)}`);
-    lines.push(`- ${i18n('contentHeat')}: ${formatCompact(data.heat)}`);
-    lines.push(`- ${i18n('contentSource')}: ${url}`);
-    return lines.join('\n');
+    lines.push(`- ${i18n('contentLikes')}: ${formatCompact(metrics.likes)}`);
+    lines.push(`- ${i18n('contentCollects')}: ${formatCompact(metrics.collects)}`);
+    lines.push(`- ${i18n('contentComments')}: ${formatCompact(metrics.comments)}`);
+    lines.push(`- ${i18n('contentShares')}: ${formatCompact(metrics.shares)}`);
+    lines.push('', pluginSourceLine());
+    return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  function readElementTitleForMarkdown(el, fallbackText = '') {
+    if (!el) return '';
+    return firstTextFromSelectors(el, MARKDOWN_TITLE_SELECTORS)
+      || firstReadableLine(stripMarkdownUiText(fallbackText || readElementTextForMarkdown(el)));
+  }
+
+  function readElementTextForMarkdown(el) {
+    if (!el) return '';
+    const selected = collectTextFromSelectors(el, MARKDOWN_TEXT_SELECTORS);
+    if (selected) return selected;
+    const clone = cloneWithoutMarkdownNoise(el);
+    if (clone?.querySelectorAll) {
+      return trimTextBeforeComments(cleanText(clone.innerText || clone.textContent || ''));
+    }
+    return trimTextBeforeComments(cleanText(el.innerText || el.textContent || ''));
+  }
+
+  function firstTextFromSelectors(root, selectors) {
+    for (const selector of selectors) {
+      const el = root.querySelector?.(selector);
+      if (isInsideMarkdownNoise(el)) continue;
+      const text = cleanText(el?.innerText || el?.textContent || '');
+      if (text && !looksLikeMarkdownNoiseLine(text)) return text;
+    }
+    return '';
+  }
+
+  function collectTextFromSelectors(root, selectors) {
+    const parts = [];
+    const seen = new Set();
+    for (const selector of selectors) {
+      root.querySelectorAll?.(selector).forEach((node) => {
+        if (isInsideMarkdownNoise(node)) return;
+        const text = cleanText(node.innerText || node.textContent || '');
+        if (!text || seen.has(text) || looksLikeMarkdownNoiseLine(text)) return;
+        seen.add(text);
+        parts.push(text);
+      });
+    }
+    return cleanText(parts.join('\n\n'));
+  }
+
+  function cloneWithoutMarkdownNoise(el) {
+    const clone = el.cloneNode?.(true);
+    clone?.querySelectorAll?.(MARKDOWN_NOISE_SELECTOR).forEach((node) => node.remove?.());
+    return clone;
+  }
+
+  function isInsideMarkdownNoise(node) {
+    return !!node?.closest?.(MARKDOWN_NOISE_SELECTOR);
+  }
+
+  function looksLikeMarkdownNoiseLine(line) {
+    const text = cleanText(line);
+    return !text
+      || /^评论$/.test(text)
+      || /^全部评论$/.test(text)
+      || /^共\s*\d+\s*条评论$/.test(text)
+      || /^说点什么/.test(text)
+      || /^还没有评论/.test(text)
+      || /^(HOT|UP|HEAT)\s+[0-9.,万千kKwW亿]+\/h$/i.test(text);
+  }
+
+  function trimTextBeforeComments(text) {
+    const lines = String(text || '').replace(/\r/g, '').split('\n');
+    const cut = lines.findIndex((line, index) => index > 0 && looksLikeCommentSectionStart(line));
+    return cleanText((cut >= 0 ? lines.slice(0, cut) : lines).join('\n'));
+  }
+
+  function looksLikeCommentSectionStart(line) {
+    const text = cleanText(line);
+    return /^评论$/.test(text)
+      || /^全部评论$/.test(text)
+      || /^共\s*\d+\s*条评论$/.test(text)
+      || /^说点什么/.test(text)
+      || /^还没有评论/.test(text);
+  }
+
+  function stripMarkdownUiText(text) {
+    const blocked = new Set([
+      'contentCopyMdLabel',
+      'contentCopyMdDone',
+      'contentCopyMdNoNoteFound',
+      'contentCopyMdCopyFailed',
+      'contentLeaderboardTitle',
+      'contentLeaderboardEmpty',
+    ].map(i18n).map(cleanText).filter(Boolean));
+    const lines = String(text || '').replace(/\r/g, '').split('\n');
+    const kept = [];
+    for (const raw of lines) {
+      const line = cleanText(raw);
+      if (!line) {
+        if (kept[kept.length - 1] !== '') kept.push('');
+        continue;
+      }
+      if (blocked.has(line) || looksLikeMarkdownNoiseLine(line)) continue;
+      kept.push(line);
+    }
+    return trimTextBeforeComments(cleanText(kept.join('\n')));
+  }
+
+  function removeLeadingTitle(text, title) {
+    const body = cleanText(text);
+    const cleanTitle = cleanText(title);
+    if (!body || body === cleanTitle) return '';
+    const lines = body.split('\n');
+    while (lines.length && !cleanText(lines[0])) lines.shift();
+    if (cleanText(lines[0]) === cleanTitle) {
+      lines.shift();
+      while (lines.length && !cleanText(lines[0])) lines.shift();
+    }
+    return cleanText(lines.join('\n'));
+  }
+
+  function resolveMarkdownSourceUrl(data = {}) {
+    const currentId = getNoteIdFromUrl(location.href);
+    const currentNoteUrl = data.id && currentId === data.id ? location.href : '';
+    if (currentNoteUrl && /[?&]xsec_token=/.test(currentNoteUrl)) return currentNoteUrl;
+    if (data.url) return data.url;
+    if (currentNoteUrl) return currentNoteUrl;
+    return buildNoteUrl(data.id, data.xsecToken);
+  }
+
+  function pluginSourceLine() {
+    return `来自插件：${PLUGIN_NAME}`;
+  }
+
+  function resolveMarkdownMetrics(data = {}, el) {
+    const fromData = {
+      likes: Number(data.likes) || 0,
+      collects: Number(data.collects) || 0,
+      comments: Number(data.comments) || 0,
+      shares: Number(data.shares) || 0,
+    };
+    const fromDom = el ? parseMetricsFromElement(el) : null;
+    if (!fromDom) return fromData;
+    if (metricsLookSuspicious(fromData) && metricsHaveSignal(fromDom) && !metricsLookSuspicious(fromDom)) {
+      return {
+        likes: fromDom.likes || fromData.likes,
+        collects: fromDom.collects || fromData.collects,
+        comments: fromDom.comments || fromData.comments,
+        shares: fromDom.shares || fromData.shares,
+      };
+    }
+    return {
+      likes: fromData.likes || fromDom.likes,
+      collects: fromData.collects || fromDom.collects,
+      comments: fromData.comments || fromDom.comments,
+      shares: fromData.shares || fromDom.shares,
+    };
+  }
+
+  function metricsLookSuspicious(metrics) {
+    const values = ['likes', 'collects', 'comments', 'shares'].map((key) => Number(metrics?.[key]) || 0).filter(Boolean);
+    return values.length >= 3 && new Set(values).size === 1;
+  }
+
+  function metricsHaveSignal(metrics) {
+    return ['likes', 'collects', 'comments', 'shares'].some((key) => Number(metrics?.[key]) > 0);
   }
 
   function collectImagesForMarkdown(data, el) {
     const urls = new Set();
-    if (data.image) urls.add(data.image);
-    el?.querySelectorAll?.('img[src]').forEach((img) => {
+    const add = (url) => {
+      const value = String(url || '').trim();
+      if (/^https?:\/\//.test(value)) urls.add(value);
+    };
+    add(data.image);
+    const imageRoot = cloneWithoutMarkdownNoise(el) || el;
+    imageRoot?.querySelectorAll?.('img[src]').forEach((img) => {
       const src = img.currentSrc || img.src;
-      if (/^https?:\/\//.test(src || '')) urls.add(src);
+      add(src);
     });
     return Array.from(urls);
   }
@@ -1017,6 +1278,14 @@
 
   function looksLikeMetricLine(line) {
     return /^(赞|收藏|评论|分享|点赞|喜欢|[0-9.,万千kKwW\s]+)$/.test(String(line || '').trim());
+  }
+
+  function isMetricLabelLine(line) {
+    return /^(赞|点赞|喜欢|收藏|评论|留言|分享|转发|like|likes|collect|collects|comment|comments|share|shares)$/i.test(String(line || '').trim());
+  }
+
+  function isMetricNumberLine(line) {
+    return /^[0-9][0-9,.]*\s*(?:万|千|k|K|w|W)?$/.test(String(line || '').trim());
   }
 
   function safeRect(el) {

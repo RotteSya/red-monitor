@@ -95,6 +95,12 @@ html[data-xvm-badge-style="inline-classic"] .xvm-badge {
   transform: translateY(-1px);
 }
 
+.xvm-copy-md-button:disabled {
+  opacity: 0.58;
+  cursor: wait;
+  transform: none;
+}
+
 .xvm-copy-md-button svg {
   width: 15px;
   height: 15px;
